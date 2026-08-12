@@ -1255,16 +1255,8 @@
     </button>
   </div>
 
-  <!-- Tampilan Setup API Key (Jika belum ada key tersimpan) -->
-  <div class="chat-setup" id="chatSetup" style="display:none">
-    <p><strong>🔑 Masukkan Gemini API Key</strong><br>Untuk mengaktifkan chatbot ini, masukkan API key Gemini Anda. Key disimpan hanya di browser Anda (localStorage).</p>
-    <input type="password" id="apiKeyInput" placeholder="Paste API key Anda di sini..." autocomplete="off">
-    <button class="chat-setup-btn" id="saveApiKey">Simpan & Aktifkan Chat</button>
-    <p class="setup-hint">Dapatkan API key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>. Model: gemini-3.5-flash-lite</p>
-  </div>
-
   <!-- Tampilan Chat Utama -->
-  <div id="chatMain" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+  <div id="chatMain" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-quick-replies" id="quickReplies"></div>
     <div class="chat-input-row">
@@ -1830,23 +1822,19 @@ Catatan penting soal harga:
   let chatHistory = [];       // Riwayat percakapan sesi ini (short-term memory)
   let chatIsOpen = false;
   let chatIsTyping = false;
-  let apiKey = localStorage.getItem('gemini_api_key') || '';
-  const GEMINI_MODEL = 'gemini-3.5-flash-lite';
-  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+  // API dipanggil melalui /api/chat (Vercel Edge Function) — key tersembunyi di server
+  const CHAT_API_URL = '/api/chat';
 
   // DOM refs
   const chatFab = document.getElementById('chatFab');
   const chatPanel = document.getElementById('chatPanel');
   const chatCloseBtn = document.getElementById('chatClose');
   const chatBadge = document.getElementById('chatBadge');
-  const chatSetup = document.getElementById('chatSetup');
   const chatMain = document.getElementById('chatMain');
   const chatMessages = document.getElementById('chatMessages');
   const chatInput = document.getElementById('chatInput');
   const chatSend = document.getElementById('chatSend');
   const quickRepliesEl = document.getElementById('quickReplies');
-  const apiKeyInput = document.getElementById('apiKeyInput');
-  const saveApiKeyBtn = document.getElementById('saveApiKey');
 
   // Buka/tutup chat panel
   function toggleChat() {
@@ -1855,24 +1843,12 @@ Catatan penting soal harga:
     chatFab.classList.toggle('hide-fab', chatIsOpen);
     chatBadge.classList.remove('show');
     if (chatIsOpen) {
-      if (!apiKey) {
-        showSetup();
-      } else {
-        showChat();
-        setTimeout(() => chatInput.focus(), 350);
-      }
+      showChat();
+      setTimeout(() => chatInput.focus(), 350);
     }
   }
 
-  function showSetup() {
-    chatSetup.style.display = 'flex';
-    chatSetup.style.flexDirection = 'column';
-    chatMain.style.display = 'none';
-  }
-
   function showChat() {
-    chatSetup.style.display = 'none';
-    chatMain.style.display = 'flex';
     if (chatMessages.children.length === 0) {
       addGreeting();
       renderQuickReplies();
@@ -1957,7 +1933,7 @@ Catatan penting soal harga:
     if (indicator) indicator.remove();
   }
 
-  // Kirim pesan ke Gemini API
+  // Kirim pesan ke /api/chat (Vercel Edge Function — key tersembunyi)
   async function sendMessage(text) {
     if (!text.trim() || chatIsTyping) return;
     chatIsTyping = true;
@@ -1965,24 +1941,17 @@ Catatan penting soal harga:
     chatInput.value = '';
 
     appendMessage('user', text);
-
-    // Tambahkan ke riwayat (memory jangka pendek sesi)
     chatHistory.push({ role: 'user', parts: [{ text }] });
-
     showTyping();
 
     try {
-      const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+      const response = await fetch(CHAT_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // System instruction = MEMORI PERMANEN tentang Dhaifan
           system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          // Riwayat percakapan = MEMORI SESI (short-term)
           contents: chatHistory,
-          generationConfig: {
-            maxOutputTokens: 512
-          }
+          generationConfig: { maxOutputTokens: 512 }
         })
       });
 
@@ -1994,25 +1963,14 @@ Catatan penting soal harga:
       const data = await response.json();
       const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Maaf, saya tidak mengerti. Coba ulangi ya! 😊';
 
-      // Simpan balasan ke riwayat sesi
       chatHistory.push({ role: 'model', parts: [{ text: reply }] });
-
-      // Batas riwayat: simpan max 20 pesan terakhir agar tidak terlalu besar
       if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
 
       hideTyping();
       appendMessage('bot', reply);
     } catch (err) {
       hideTyping();
-      let errMsg = '⚠️ Gagal terhubung ke AI. ';
-      if (err.message.includes('API_KEY') || err.message.includes('key')) {
-        errMsg += 'API key tidak valid. Klik ikon chat → atur ulang key.';
-        localStorage.removeItem('gemini_api_key');
-        apiKey = '';
-      } else {
-        errMsg += err.message;
-      }
-      appendMessage('bot', errMsg);
+      appendMessage('bot', '⚠️ Gagal terhubung ke AI. ' + err.message);
     } finally {
       chatIsTyping = false;
       chatSend.disabled = false;
@@ -2028,21 +1986,7 @@ Catatan penting soal harga:
   chatSend.addEventListener('click', () => sendMessage(chatInput.value));
   chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput.value); } });
 
-  // Event: simpan API key
-  saveApiKeyBtn.addEventListener('click', () => {
-    const key = apiKeyInput.value.trim();
-    if (!key || key.length < 10) {
-      apiKeyInput.style.borderColor = '#ef4444';
-      apiKeyInput.placeholder = '⚠️ API key tidak valid, pastikan sudah dicopy dengan benar';
-      return;
-    }
-    localStorage.setItem('gemini_api_key', key);
-    apiKey = key;
-    showChat();
-  });
-  apiKeyInput.addEventListener('input', () => { apiKeyInput.style.borderColor = ''; apiKeyInput.placeholder = 'Paste API key Anda...'; });
-
-  // Tampilkan badge notif saat panel tertutup (agar pengunjung tahu ada chatbot)
+  // Tampilkan badge notif saat panel tertutup
   setTimeout(() => { if (!chatIsOpen) chatBadge.classList.add('show'); }, 3000);
 </script>
 </body>
