@@ -781,7 +781,7 @@
     .sheet-handle { display: block; }
     .chat-panel {
       position: fixed; top: auto; bottom: 0; left: 0; right: 0;
-      width: 100%; height: 85vh; max-height: 85vh;
+      width: 100%; height: auto; max-height: 90vh;
       border-radius: 28px 28px 0 0;
       border: none;
       box-shadow: 0 -12px 48px rgba(0,0,0,0.3);
@@ -791,12 +791,16 @@
     .chat-panel.open {
       transform: translateY(0); opacity: 1;
     }
+    #chatMain {
+      height: 65vh;
+    }
     .chat-header {
       padding: 16px 18px 14px; border-radius: 28px 28px 0 0;
     }
+    .chat-setup { padding: 24px 20px 32px; }
     .chat-messages { padding: 14px; gap: 10px; }
     .msg-bubble { max-width: 88%; font-size: 13px; padding: 10px 13px; }
-    .chat-input-row { padding: 10px 12px; }
+    .chat-input-row { padding: 10px 12px 20px; }
   }
 </style>
 </head>
@@ -808,10 +812,7 @@
 <!-- ========== NAVBAR ========== -->
 <div class="navbar-wrap">
   <nav class="navbar" id="navbar">
-    <div class="nav-logo">
-      <img src="logo.png" alt="KadalApi Logo" class="nav-logo-img">
-      <span>KadalApi</span>
-    </div>
+    <div class="nav-logo"><span class="dot"></span>KadalApi</div>
     <ul class="nav-links" id="navLinks">
       <li><a href="#home" class="active" data-i18n="nav_home">Home</a></li>
       <li><a href="#about" data-i18n="nav_about">Tentang</a></li>
