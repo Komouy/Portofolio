@@ -1,7 +1,7 @@
 /* PIXEL THEME OVERLAY — orange + white/dark. Menimpa style.css. */
 :root{
-  --px-font:'Press Start 2P',monospace;
-  --px-body:'VT323',monospace;
+  --px-font:'Silkscreen',monospace;
+  --px-body:'DotGothic16',monospace;
   --px-border:3px solid var(--ink);
   --px-shadow:4px 4px 0 var(--ink);
   --px-shadow-sm:3px 3px 0 var(--ink);
@@ -158,7 +158,7 @@ body::after{content:''; position:fixed; inset:0; z-index:9996; pointer-events:no
 .hero-visual{order:-1 !important; width:100% !important; display:flex !important; justify-content:center !important; align-items:center !important; margin:0 !important; padding:0 !important; overflow:visible !important;}
 .fox-stage{flex:none !important; width:var(--px-fox) !important; max-width:100% !important; margin:0 auto !important; overflow:visible !important; aspect-ratio:48/40 !important;}
 .hero-copy{display:flex !important; flex-direction:column !important; align-items:flex-start !important; width:100% !important; max-width:var(--px-col) !important; text-align:left !important;}
-.hero-copy .eyebrow{font-size:clamp(9px, 1vw, 10px) !important; margin-bottom:var(--px-gap-xs) !important; justify-content:flex-start !important;}
+.hero-copy .eyebrow{font-size:clamp(13px, 1.4vw, 15px) !important; margin-bottom:var(--px-gap-xs) !important; justify-content:flex-start !important;}
 .hero-copy h1{font-size:clamp(31px, 4.4vw, 36px) !important; line-height:1.35 !important; letter-spacing:0 !important; text-align:left !important; max-width:100% !important;}
 .hero-copy p.sub{margin:var(--px-gap-xs) 0 0 !important; max-width:100% !important; text-align:left !important;}
 .hero-actions{display:flex !important; flex-direction:column !important; align-items:stretch !important; gap:10px !important; margin-top:var(--px-gap-lg) !important; width:100% !important; max-width:var(--px-cta) !important;}
@@ -169,7 +169,8 @@ body::after{content:''; position:fixed; inset:0; z-index:9996; pointer-events:no
   .hero-actions--split .btn-ghost{margin-left:auto !important;}
   .hero-actions--split .btn{flex:none !important; width:auto !important; justify-content:center !important; text-align:center !important; padding:clamp(12px, 1.4vw, 16px) clamp(10px, 1.4vw, 22px) !important;}
   @media (max-width:980px){
-    .hero-actions--split{flex-direction:column !important; align-items:flex-start !important; gap:clamp(8px, 1.2vw, 12px) !important;}
+    .hero-actions--split{flex-direction:row !important; flex-wrap:wrap !important; align-items:center !important; gap:clamp(8px, 1.2vw, 12px) !important;}
+    .hero-actions--split .btn{flex:1 1 auto !important; min-width:120px !important; width:auto !important;}
     .hero-actions--split .btn-ghost{margin-left:0 !important;}
   }
 
@@ -375,4 +376,3 @@ footer{border-top:var(--px-border);}
   .fox-stage{width:clamp(280px, 30vw, 340px) !important; margin:0 0 0 auto !important;}
   .hero-copy{max-width:none !important;} /* isi penuh kolom kiri supaya marquee & tombol sejajar gutter */
 }
-

@@ -817,8 +817,8 @@ Catatan penting soal harga:
   // Greeting awal dari bot
   function addGreeting() {
     const greet = currentLang === 'en'
-      ? `Hi there! 👋 I'm Dhaifan's AI assistant. Ask me anything — his skills, projects, experience, or how to work together!`
-      : `Halo! 👋 Saya adalah AI asisten Dhaifan. Tanyakan apa saja — keahlian, project, pengalaman, atau cara berkolaborasi!`;
+      ? `Hi there! 👋 I'm KadalApi's AI assistant. Ask me anything — his skills, projects, experience, or how to work together!`
+      : `Halo! 👋 Saya adalah AI asisten KadalApi. Tanyakan apa saja — keahlian, project, pengalaman, atau cara berkolaborasi!`;
     appendMessage('bot', greet);
   }
 
