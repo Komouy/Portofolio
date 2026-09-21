@@ -1,0 +1,30 @@
+# ============================================================
+# Portofolio - .gitignore
+# Dibuat setelah reset repo (repo lama 98,57 MB dihapus)
+# ============================================================
+
+# ---- OS / editor ----
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# ---- Folder profil Chrome / cache yang dulu nyasar ke checkpoint Cline ----
+_cudv/
+_cvchk/
+*_cudv/
+*_cvchk/
+
+# ---- File besar & file download belum selesai ----
+# Hapus baris "*.mp4" di bawah JIKA ingin video ikut masuk ke repo
+*.mp4
+*.crdownload
+*.zip
+*.rar
+*.psd
+*.ai
+
+# ---- Backup lokal ----
+backup/
+*.bak
