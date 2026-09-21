@@ -10,6 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=DotGothic16&family=Silkscreen:wght@400;700&family=Pixelify+Sans:wght@400;700&family=Handjet:wght@400;700&family=Micro+5&family=Tiny5&family=Sora:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=DotGothic16&family=Silkscreen:wght@400;700&family=Pixelify+Sans:wght@400;700&family=Handjet:wght@400;700&family=Micro+5&family=Tiny5&family=Sora:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { corePlugins: { preflight: false } };</script>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="pixel.css">
 <script>(function(){try{var t=localStorage.getItem('portfolio_theme');if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches){t='dark';}document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
@@ -87,6 +89,7 @@
 <!-- ========== HERO ========== -->
 <section id="home" class="hero">
   <div class="hero-bg">
+    <canvas id="pxStarfield" class="px-starfield absolute inset-0 w-full h-full" aria-hidden="true"></canvas>
     <div class="hero-grid"></div>
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
@@ -94,7 +97,7 @@
   <div class="container hero-inner">
     <div class="hero-copy">
       <div class="eyebrow reveal in-view" data-i18n="hero_eyebrow">Web Developer &amp; AI Enthusiast</div>
-      <h1 class="reveal in-view" data-i18n="hero_title">Membangun Website Modern &amp; <em class="gradient-text">AI-Powered</em> Digital Solutions.</h1>
+      <h1 class="reveal in-view" id="heroTitle" data-i18n="hero_title">Membangun Website Modern &amp; <em class="gradient-text">AI-Powered</em> Digital Solutions.</h1>
       <p class="sub reveal in-view" style="transition-delay:.1s" data-i18n="hero_sub">Saya membantu bisnis dan individu membangun website cepat, modern, responsif, dan terintegrasi dengan teknologi AI.</p>
       <div class="hero-actions hero-actions--split reveal in-view" style="transition-delay:.18s">
         <a href="#projects" class="btn btn-primary magnetic" data-i18n="hero_btn_projects">
@@ -225,9 +228,9 @@
     <div class="about-copy reveal">
       <div class="eyebrow" data-i18n="about_eyebrow">Tentang Saya</div>
       <h2 style="font-size:clamp(28px,3.4vw,36px); font-weight:700; margin-bottom:18px;" data-i18n="about_title">Fokus pada solusi digital yang nyata dampaknya.</h2>
-      <p data-i18n="about_p1">Saya , Web Developer yang berfokus pada pengembangan website modern, integrasi Artificial Intelligence, otomatisasi, dan pembuatan solusi digital yang membantu bisnis maupun individu berkembang lebih cepat.</p>
-      <p data-i18n="about_p2">Setiap project saya kerjakan dengan pendekatan yang bersih dan terstruktur — dari perencanaan arsitektur, desain antarmuka, hingga implementasi teknis yang siap untuk skala produksi.</p>
-Dhaifan    </div>
+      <p data-i18n="about_p1">Saya Dhaifan, siswa RPL yang membangun solusi digital jauh sebelum lulus. Dari platform prop-trading forex hingga aplikasi desktop dengan AI lokal — saya tidak hanya belajar teknologi, tapi langsung menerapkannya untuk kebutuhan yang nyata.</p>
+      <p data-i18n="about_p2">Pendekatan saya selalu dimulai dari memahami <em>kenapa</em>, bukan sekadar <em>cara</em>. Setiap project dikerjakan dengan arsitektur yang bersih, integrasi yang terencana, dan orientasi pada dampak — bukan hanya tampilan.</p>
+    </div>
     <div class="stat-grid">
       <div class="stat-card reveal" style="transition-delay:.05s">
         <div class="card-shine"></div>
@@ -402,31 +405,78 @@ Dhaifan    </div>
       </div>
 
       <div class="proj-card reveal" style="transition-delay:.1s">
-        <div class="card-shine"></div>
-        <div class="proj-thumb thumb-2" style="background:none;">
-          <img src="utilo.png" alt="UtiloBox Preview" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;">
-        </div>
-        <div class="proj-body">
-          <h3><a href="https://kotaktools.my.id/" target="_blank" rel="noopener">UtiloBox</a></h3>
-          <p data-i18n="proj2_desc">Koleksi alat web lengkap — QR Code, JSON Formatter, Base64, Image Converter, &amp; AI Background Remover. Cepat, privat, dan 100% lokal di browser.</p>
-          <div class="proj-tags"><span>React</span><span>Tailwind CSS</span><span>FastAPI</span><span>Vite</span></div>
-          <div class="proj-links">
-            <a href="https://github.com/Komouy" target="_blank" rel="noopener">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.16 19.5c.5.1.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.1.39-1.99 1.03-2.69-.1-.26-.45-1.29.1-2.68 0 0 .84-.27 2.75 1.02a9.4 9.4 0 015 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.4.2 2.42.1 2.68.64.7 1.03 1.6 1.03 2.69 0 3.85-2.34 4.7-4.57 4.94.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0012 2z"/></svg>
-              GitHub
-            </a>
-            <a href="https://kotaktools.my.id/" target="_blank" rel="noopener">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h7v7M21 3l-9 9M5 5h6v2H7v10h10v-4h2v6H5z"/></svg>
-              Demo
-            </a>
-          </div>
-        </div>
-      </div>
+  <div class="card-shine"></div>
+
+  <div class="proj-thumb thumb-2" style="background:none;">
+    <img
+      src="infa.png"
+      alt="Informatika UIN Saizu Preview"
+      loading="lazy"
+      decoding="async"
+      style="width:100%;height:100%;object-fit:cover;display:block;"
+    >
+  </div>
+
+  <div class="proj-body">
+    <h3>
+      <a
+        href="https://s1-infa.vercel.app/"
+        target="_blank"
+        rel="noopener"
+      >
+        Informatika - UIN Saizu
+      </a>
+    </h3>
+
+    <p data-i18n="proj2_desc">
+      Platform informasi mahasiswa Informatika UIN Saizu yang mengelola
+      pengumuman, jadwal, deadline, lomba, informasi dosen, dan berbagai
+      informasi kelas secara terstruktur.
+    </p>
+
+    <div class="proj-tags">
+      <span>Typescript</span>
+      <span>Firebase</span>
+      <span>Gemini API</span>
+      <span>Groq API</span>
+      <span>Baileys</span>
+    </div>
+
+    <div class="proj-links">
+      <a
+        href="https://github.com/Komouy"
+        target="_blank"
+        rel="noopener"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2a10 10 0 00-3.16 19.5c.5.1.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.1.39-1.99 1.03-2.69-.1-.26-.45-1.29.1-2.68 0 0 .84-.27 2.75 1.02a9.4 9.4 0 015 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.4.2 2.42.1 2.68.64.7 1.03 1.6 1.03 2.69 0 3.85-2.34 4.7-4.57 4.94.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0012 2z"/>
+        </svg>
+        GitHub
+      </a>
+
+      <a
+        href="https://s1-infa.vercel.app/"
+        target="_blank"
+        rel="noopener"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M14 3h7v7M21 3l-9 9M5 5h6v10h10v-4"/>
+        </svg>
+        Demo
+      </a>
+    </div>
+  </div>
+</div>
 
       <div class="proj-card reveal" style="transition-delay:.2s">
         <div class="card-shine"></div>
         <div class="proj-thumb thumb-3" style="background:none;">
-          <video src="arunika.mp4" muted loop playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+          <img src="arunika.png" alt="Arunika AI Preview" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;">
         </div>
         <div class="proj-body">
           <h3>Arunika AI</h3>
@@ -434,6 +484,27 @@ Dhaifan    </div>
           <div class="proj-tags"><span>Python</span><span>Fast API</span><span>Ollama</span><span>Qwen 2.5B</span></div>
           <div class="proj-links">
             <a href="https://github.com/Komouy" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.16 19.5c.5.1.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.1.39-1.99 1.03-2.69-.1-.26-.45-1.29.1-2.68 0 0 .84-.27 2.75 1.02a9.4 9.4 0 015 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.4.2 2.42.1 2.68.64.7 1.03 1.6 1.03 2.69 0 3.85-2.34 4.7-4.57 4.94.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0012 2z"/></svg>
+              GitHub
+            </a>
+            <a href="#contact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h7v7M21 3l-9 9M5 5h6v2H7v10h10v-4h2v6H5z"/></svg>
+              Demo
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="proj-card reveal" style="transition-delay:.3s">
+        <div class="card-shine"></div>
+        <div class="proj-thumb thumb-3" style="background:none;">
+          <img src="klyro.png" alt="KlyroCLI Preview" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;">
+        </div>
+        <div class="proj-body">
+          <h3>KlyroCLI</h3>
+          <p data-i18n="proj4_desc"><strong>KlyroCLI</strong> adalah CLI berbasis AI yang membantu developer menulis, memahami, dan mengelola kode langsung melalui terminal dengan memanfaatkan Large Language Models (LLM) dan sistem routing model untuk memilih model yang sesuai dengan kebutuhan.</p>
+          <div class="proj-tags"><span>Python</span><span>Fast API</span><span>Ollama</span><span>Qwen 2.5B</span></div>
+          <div class="proj-links">
+            <a href="https://github.com/Komouy/KlyroCLI" target="_blank" rel="noopener">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.16 19.5c.5.1.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.1.39-1.99 1.03-2.69-.1-.26-.45-1.29.1-2.68 0 0 .84-.27 2.75 1.02a9.4 9.4 0 015 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.4.2 2.42.1 2.68.64.7 1.03 1.6 1.03 2.69 0 3.85-2.34 4.7-4.57 4.94.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0012 2z"/></svg>
               GitHub
             </a>

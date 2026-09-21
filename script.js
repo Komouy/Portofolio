@@ -21,8 +21,8 @@
       hero_chip_2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>Responsif`,
       about_eyebrow: "Tentang Saya",
       about_title: "Fokus pada solusi digital yang nyata dampaknya.",
-      about_p1: "Saya Dhaifan, Web Developer yang berfokus pada pengembangan website modern, integrasi Artificial Intelligence, otomatisasi, dan pembuatan solusi digital yang membantu bisnis maupun individu berkembang lebih cepat.",
-      about_p2: "Setiap project saya kerjakan dengan pendekatan yang bersih dan terstruktur — dari perencanaan arsitektur, desain antarmuka, hingga implementasi teknis yang siap untuk skala produksi.",
+      about_p1: "Saya Dhaifan, siswa RPL yang membangun solusi digital jauh sebelum lulus. Dari platform prop-trading forex hingga aplikasi desktop dengan AI lokal — saya tidak hanya belajar teknologi, tapi langsung menerapkannya untuk kebutuhan yang nyata.",
+      about_p2: "Pendekatan saya selalu dimulai dari memahami <em>kenapa</em>, bukan sekadar <em>cara</em>. Setiap project dikerjakan dengan arsitektur yang bersih, integrasi yang terencana, dan orientasi pada dampak — bukan hanya tampilan.",
       stat_1_label: "Project Selesai",
       stat_2_label: "Teknologi Dikuasai",
       stat_3_label: "Tahun Pengalaman",
@@ -32,8 +32,9 @@
       proj_eyebrow: "Featured Projects",
       proj_title: "Beberapa karya yang saya bangun.",
       proj1_desc: `<strong>PropAcademyForex.com</strong> adalah platform prop trading yang saya kembangkan dengan Dashboard Trader dan Dashboard Affiliate untuk memantau performa akun, referral, serta komisi secara real-time.`,
-      proj2_desc: `Koleksi alat web lengkap — QR Code, JSON Formatter, Base64, Image Converter, & AI Background Remover. Cepat, privat, dan 100% lokal di browser.`,
+      proj2_desc: `<strong>Informatika - UIN Saizu</strong> adalah platform informasi mahasiswa Informatika UIN Saizu yang mengelola pengumuman, jadwal, deadline, lomba, informasi dosen, dan berbagai informasi kelas secara terstruktur.`,
       proj3_desc: `<strong>Arunika AI</strong> adalah aplikasi desktop berbasis AI yang memungkinkan pengguna berinteraksi dengan Large Language Models (LLM) secara langsung untuk membantu berbagai kebutuhan produktivitas melalui antarmuka yang sederhana dan modern.`,
+      proj4_desc: `<strong>KlyroCLI</strong> adalah CLI berbasis AI yang membantu developer menulis, memahami, dan mengelola kode langsung melalui terminal dengan memanfaatkan Large Language Models (LLM) dan sistem routing model untuk memilih model yang sesuai dengan kebutuhan.`,
       exp_eyebrow: "My Journey",
       exp_title: "Perjalanan Saya",
       exp_sub: "Perjalanan belajar dan berkembang di dunia teknologi — dari dasar pemrograman hingga AI.",
@@ -83,8 +84,8 @@
       hero_chip_2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>Responsive`,
       about_eyebrow: "About Me",
       about_title: "Focusing on digital solutions with real impact.",
-      about_p1: "I'm Dhaifan, a Web Developer focusing on modern web development, Artificial Intelligence integration, automation, and creating digital solutions that help businesses and individuals grow faster.",
-      about_p2: "Every project is crafted with a clean and structured approach — from architectural planning and UI design to production-ready technical implementation.",
+      about_p1: "I'm Dhaifan, an RPL student who builds real-world digital solutions well before graduation. From a forex prop-trading platform to a desktop app powered by local LLMs — I don't just study technology; I apply it where it actually matters.",
+      about_p2: "My approach always starts with understanding <em>why</em>, not just <em>how</em>. Every project is built with clean architecture, intentional integration, and a focus on real impact — not just aesthetics.",
       stat_1_label: "Projects Completed",
       stat_2_label: "Technologies Mastered",
       stat_3_label: "Years Experience",
@@ -94,8 +95,9 @@
       proj_eyebrow: "Featured Projects",
       proj_title: "Some of the works I've built.",
       proj1_desc: `<strong>PropAcademyForex.com</strong> is a prop trading platform I developed with Trader and Affiliate Dashboards to monitor account performance, referrals, and real-time commissions.`,
-      proj2_desc: `The complete web tools collection — QR Code, JSON Formatter, Base64, Image Converter, & AI Background Remover. Fast, private, and 100% local in browser.`,
+      proj2_desc: `<strong>Informatika - UIN Saizu</strong> is a student information platform for the Informatics department at UIN Saizu, managing announcements, schedules, deadlines, competitions, lecturer info, and class information in one structured place.`,
       proj3_desc: `<strong>Arunika AI</strong> is an AI-powered desktop application enabling users to interact directly with Large Language Models (LLM) for various productivity needs through a simple, modern interface.`,
+      proj4_desc: `<strong>KlyroCLI</strong> is an AI-powered CLI that helps developers write, understand, and manage code right from the terminal using Large Language Models (LLM) and a model-routing system that picks the right model for each task.`,
       exp_eyebrow: "My Journey",
       exp_title: "My Journey",
       exp_sub: "Learning and growing journey in technology — from programming fundamentals to AI.",
@@ -175,7 +177,11 @@
       els.forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (key && translations[lang][key]) {
-          el.innerHTML = translations[lang][key];
+          if (el.id === 'heroTitle' && typeof typewriterReveal === 'function') {
+            typewriterReveal(el, translations[lang][key], 28);
+          } else {
+            el.innerHTML = translations[lang][key];
+          }
         }
         const phKey = el.getAttribute('data-i18n-ph');
         if (phKey && translations[lang][phKey]) {
@@ -315,12 +321,186 @@
     });
   })();
 
+  // ---------- PIXEL STARFIELD (background hero, gaya kotak-kotak bukan glow soft) ----------
+  (function initPxStarfield() {
+    const canvas = document.getElementById('pxStarfield');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const heroEl = canvas.closest('.hero');
+    let stars = [];
+    let w = 0, h = 0, running = true;
+
+    function resize() {
+      const rect = heroEl.getBoundingClientRect();
+      w = rect.width; h = rect.height;
+      canvas.width = Math.floor(w * DPR);
+      canvas.height = Math.floor(h * DPR);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      // kepadatan bintang mengikuti luas area, dibatasi biar tetap ringan
+      const count = Math.min(70, Math.floor((w * h) / 9000));
+      stars = Array.from({ length: count }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        size: [2, 2, 3, 4][Math.floor(Math.random() * 4)], // ukuran pixel-snap, bukan float sembarang
+        speed: Math.random() * 14 + 4, // px per detik, jatuh perlahan ke bawah
+        blinkOffset: Math.random() * Math.PI * 2,
+        blinkSpeed: Math.random() * 1.2 + 0.5,
+        color: Math.random() > 0.75 ? '249,115,22' : '255,255,255'
+      }));
+    }
+
+    let lastT = performance.now();
+    function tick(now) {
+      if (!running) { requestAnimationFrame(tick); return; }
+      if (document.hidden) { lastT = now; requestAnimationFrame(tick); return; }
+      const dt = Math.min((now - lastT) / 1000, 0.05);
+      lastT = now;
+      ctx.clearRect(0, 0, w, h);
+      for (const s of stars) {
+        s.y += s.speed * dt;
+        if (s.y > h + 4) { s.y = -4; s.x = Math.random() * w; }
+        const blink = 0.4 + 0.6 * Math.abs(Math.sin(now / 1000 * s.blinkSpeed + s.blinkOffset));
+        ctx.fillStyle = `rgba(${s.color},${blink})`;
+        // snap ke grid pixel supaya konsisten dengan estetika pixel-art (bukan sub-pixel blur)
+        ctx.fillRect(Math.round(s.x), Math.round(s.y), s.size, s.size);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+    document.addEventListener('visibilitychange', () => { running = !document.hidden; });
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // tetap gambar starfield statis satu kali, tapi tanpa animasi jatuh/berkedip
+      ctx.clearRect(0, 0, w, h);
+      for (const s of stars) {
+        ctx.fillStyle = `rgba(${s.color},0.8)`;
+        ctx.fillRect(Math.round(s.x), Math.round(s.y), s.size, s.size);
+      }
+    } else {
+      requestAnimationFrame(tick);
+    }
+  })();
+
+  // ---------- TYPEWRITER JUDUL HERO (ala terminal, aman untuk tag <em> di dalamnya) ----------
+  // Memecah innerHTML jadi node teks vs tag, lalu mengungkap karakter demi karakter
+  // hanya pada node teks — tag <em class="gradient-text"> tetap utuh, tidak diketik literal.
+  function typewriterReveal(el, html, speedMs) {
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.innerHTML = html;
+      return;
+    }
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    el.innerHTML = '';
+    el.classList.add('px-typing');
+
+    // kumpulkan urutan aksi: teks diketik karakter per karakter, tag dibuka/ditutup langsung
+    const target = el;
+    let cursorParent = target;
+
+    function walk(node, doneCb) {
+      const queue = [];
+      (function collect(n, parent) {
+        if (n.nodeType === Node.TEXT_NODE) {
+          queue.push({ type: 'text', text: n.textContent, parent });
+        } else if (n.nodeType === Node.ELEMENT_NODE) {
+          const clone = document.createElement(n.tagName);
+          for (const attr of n.attributes) clone.setAttribute(attr.name, attr.value);
+          queue.push({ type: 'open', el: clone, parent });
+          n.childNodes.forEach(child => collect(child, clone));
+        }
+      })(node, target);
+
+      let i = 0;
+      const parentStack = [target];
+      function step() {
+        if (i >= queue.length) { doneCb(); return; }
+        const item = queue[i];
+        if (item.type === 'open') {
+          item.parent.appendChild ? null : null;
+          (item.parent === target ? target : item.parent).appendChild(item.el);
+          i++;
+          step();
+          return;
+        }
+        // ketik teks karakter demi karakter ke dalam parent yang benar
+        const holder = item.parent === target ? target : item.parent;
+        let chars = 0;
+        const full = item.text;
+        const textNode = document.createTextNode('');
+        holder.appendChild(textNode);
+        const typeChar = () => {
+          chars++;
+          textNode.textContent = full.slice(0, chars);
+          if (chars < full.length) {
+            setTimeout(typeChar, speedMs);
+          } else {
+            i++;
+            step();
+          }
+        };
+        typeChar();
+      }
+      step();
+    }
+
+    walk(temp, () => { el.classList.remove('px-typing'); });
+  }
+
+  const heroTitleEl = document.getElementById('heroTitle');
+  if (heroTitleEl) {
+    const originalHTML = heroTitleEl.innerHTML;
+    typewriterReveal(heroTitleEl, originalHTML, 28);
+  }
+
+  // ---------- SKILL ICON POP: ikon sk-icon "meletup" masuk saat card terlihat (independen dari .reveal) ----------
+  (function initSkillIconPop() {
+    const icons = document.querySelectorAll('.sk-icon');
+    if (!icons.length || !('IntersectionObserver' in window)) return;
+    icons.forEach(icon => icon.classList.add('px-icon-ready'));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('px-icon-pop');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    icons.forEach(icon => io.observe(icon));
+  })();
+
   // ---------- reveal on scroll (hemat: rootMargin, putus setelah terlihat) ----------
+  // stagger otomatis: kartu bertetangga dalam grid/track yang sama masuk berurutan (efek "ketik" pixel)
   const revealEls = document.querySelectorAll('.reveal, .reveal-scale');
+  const staggerCounters = new WeakMap();
   const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); } });
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      const group = el.parentElement;
+      const n = staggerCounters.get(group) || 0;
+      staggerCounters.set(group, n + 1);
+      const stepDelay = Math.min(n * 55, 330); // maks ~6 langkah, lalu serentak biar tidak lambat
+      el.style.transitionDelay = el.style.transitionDelay || `${stepDelay}ms`;
+      el.classList.add('in-view');
+      io.unobserve(el);
+    });
   }, { threshold: 0.12, rootMargin: '0px 0px 8% 0px' });
   revealEls.forEach(el => io.observe(el));
+
+  // ---------- feedback sentuh untuk card di mobile (tanpa hover, tetap terasa "ditekan") ----------
+  if (!window.matchMedia('(pointer:fine)').matches) {
+    document.querySelectorAll('.stat-card, .skill-card, .proj-card, .chip, .badge').forEach(card => {
+      card.addEventListener('touchstart', () => card.classList.add('px-pressed'), { passive: true });
+      card.addEventListener('touchend', () => setTimeout(() => card.classList.remove('px-pressed'), 120), { passive: true });
+      card.addEventListener('touchcancel', () => card.classList.remove('px-pressed'), { passive: true });
+    });
+  }
 
   // ---------- 3D CARD TILT & PARALLAX MOUSE EFFECT (rAF, pause saat tab hidden) ----------
   const cards3D = document.querySelectorAll('.stat-card, .skill-card, .proj-card');
@@ -611,7 +791,7 @@
   if (pxLoader) {
     document.body.style.overflow = 'hidden';
     const t0 = performance.now();
-    const MIN_MS = 3600, MAX_MS = 8000;
+    const MIN_MS = 1100, MAX_MS = 3500;
     let lastShown = -1, done = false;
     const finish = () => {
       if (done) return;
@@ -630,12 +810,51 @@
         if (pxFill) pxFill.style.transform = `scaleX(${p / 100})`;
         if (pxText) pxText.textContent = 'LOADING... ' + p + '%';
       }
-      if (el >= MIN_MS + 900 || p >= 100 && el >= MIN_MS) { setTimeout(finish, p >= 100 ? 900 : 0); return; }
+      if (el >= MIN_MS + 250 || p >= 100 && el >= MIN_MS) { setTimeout(finish, p >= 100 ? 250 : 0); return; }
       if (el >= MAX_MS) { finish(); return; }
       requestAnimationFrame(tickLoader);
     };
     requestAnimationFrame(tickLoader);
   }
+
+  // ---------- SKELETON THUMB: tandai gambar/video project sudah termuat (sembunyikan skeleton, fade-in konten) ----------
+  (function initThumbSkeleton() {
+    const markLoaded = (el) => el.classList.add('px-loaded');
+    document.querySelectorAll('.proj-thumb img').forEach(img => {
+      if (img.complete && img.naturalWidth > 0) markLoaded(img);
+      else img.addEventListener('load', () => markLoaded(img), { once: true });
+    });
+    document.querySelectorAll('.proj-thumb video').forEach(v => {
+      if (v.readyState >= 2) markLoaded(v);
+      else v.addEventListener('loadeddata', () => markLoaded(v), { once: true });
+    });
+  })();
+
+  // ---------- THUMB PROJECT FALLBACK: gambar tidak ada / gagal dimuat → placeholder pixel (bukan ikon broken) ----------
+  (function initThumbFallback() {
+    const markMissing = (img) => {
+      const thumb = img.closest ? img.closest('.proj-thumb') : null;
+      if (!thumb) return;
+      if (!thumb.classList.contains('thumb-missing')) {
+        const card = img.closest('.proj-card');
+        const titleEl = card ? card.querySelector('h3') : null;
+        const title = titleEl ? titleEl.textContent.trim() : '';
+        if (title) thumb.dataset.name = title;
+        thumb.classList.add('thumb-missing');
+      }
+      img.remove();
+    };
+    // error gambar tidak "bubble", tapi tetap tertangkap di fase capture →
+    // jangkau juga card duplikat yang dibuat marquee (cloneNode) maupun gambar yang ditambah belakangan
+    document.addEventListener('error', (e) => {
+      const t = e.target;
+      if (t && t.tagName === 'IMG' && t.closest && t.closest('.proj-thumb')) markMissing(t);
+    }, true);
+    // kasus gambar sudah gagal sebelum listener terpasang (dari cache / lazy load gagal)
+    document.querySelectorAll('.proj-thumb img').forEach(img => {
+      if (img.complete && img.naturalWidth === 0) markMissing(img);
+    });
+  })();
 
   // ---------- video project: putar hanya saat terlihat (hemat baterai/CPU) ----------
   const projVideo = document.querySelector('.proj-thumb video');

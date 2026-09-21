@@ -191,6 +191,13 @@ section{padding:var(--px-sec) 0 !important;}
 .chip:hover{transform:translate(-1px,-1px) !important; box-shadow:3px 3px 0 var(--ink) !important;}
 .proj-thumb{border-bottom:var(--px-border);}
 .proj-thumb::after{display:none;}
+/* ===== THUMB PROJECT FALLBACK: gambar tidak ada / gagal dimuat → placeholder pixel, bukan ikon broken ===== */
+.proj-thumb.thumb-missing{background:var(--gray-100) !important;}
+.proj-thumb.thumb-missing::before{content:''; position:absolute; inset:0; background-image:linear-gradient(var(--gray-200) 2px, transparent 2px), linear-gradient(90deg, var(--gray-200) 2px, transparent 2px); background-size:18px 18px;}
+.proj-thumb.thumb-missing::after{content:attr(data-name) ' — NO PREVIEW'; display:block; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); max-width:calc(100% - 24px); font-family:var(--px-font); font-size:12px; line-height:1.5; letter-spacing:.06em; text-align:center; color:var(--gray-500); background:var(--white); border:2px solid var(--ink); box-shadow:var(--px-shadow-sm); padding:6px 10px;}
+[data-theme="dark"] .proj-thumb.thumb-missing{background:#242019 !important;}
+[data-theme="dark"] .proj-thumb.thumb-missing::before{background-image:linear-gradient(#353025 2px, transparent 2px), linear-gradient(90deg, #353025 2px, transparent 2px);}
+[data-theme="dark"] .proj-thumb.thumb-missing::after{background:#14110d; color:#f5efe6;}
 .proj-tags span{border:2px solid var(--ink); border-radius:0 !important; font-size:15px !important;}
 .proj-links{border-top:var(--px-border) !important;}
 .timeline::before{width:4px; background:repeating-linear-gradient(0deg, var(--orange) 0 8px, transparent 8px 14px);}
@@ -274,8 +281,9 @@ footer{border-top:var(--px-border);}
 
 @media (max-width:580px){
   /* gutter, hero, dan tombol: token fluid di atas (tampilan mobile jadi default) */
-  .stat-grid{grid-template-columns:1fr 1fr !important;}
-  .stat-grid .stat-card:last-child{grid-column:1 / -1 !important;}
+  /* tetap 3 kolom rapi & simetris — tidak ada baris terakhir yang menggantung sendirian */
+  .stat-grid{grid-template-columns:repeat(3,1fr) !important;}
+  .stat-card{padding:clamp(12px, 3vw, 18px) 6px !important;}
   .px-loader-box{padding:24px 20px !important;}
 }
 @media (max-width:580px){.chat-panel{border-left:none !important; border-right:none !important; border-bottom:none !important;} .chat-header{border-radius:0 !important;} .nav-links a{font-size:19px !important;}}
@@ -341,6 +349,17 @@ footer{border-top:var(--px-border);}
    Semua nilai fluid: minimum = tampilan mobile, maksimum = desktop.
    Jadi proporsi mobile & desktop identik, hanya skalanya yang tumbuh.
    ========================================================================== */
+/* Grid Skills berisi 5 kartu — kartu AI (paling banyak isinya) melebar 2 kolom
+   supaya baris terakhir selalu penuh, tidak ada kartu menggantung sendirian
+   dengan ruang kosong di sampingnya. Hanya berlaku pada grid statis
+   (fallback reduced-motion / sebelum marquee JS aktif) — mode marquee (flex)
+   tidak terpengaruh karena grid-column tidak berlaku pada flex item. */
+@media (min-width:981px){
+  .skills-grid:not(.px-marquee) .skill-card:nth-child(4){grid-column:span 2 !important;}
+}
+@media (max-width:980px) and (min-width:621px){
+  .skills-grid:not(.px-marquee) .skill-card:nth-child(5){grid-column:span 2 !important;}
+}
 #about .about-grid{gap:clamp(20px, 3.4vw, 48px) !important;}
 .skills-grid:not(.px-marquee){gap:clamp(10px, 1.4vw, 18px) !important;}
 .proj-grid:not(.px-marquee){gap:clamp(14px, 1.6vw, 22px) !important;}
@@ -349,8 +368,8 @@ footer{border-top:var(--px-border);}
 .form-card{padding:clamp(20px, 2.2vw, 28px) !important;}
 .stat-grid{gap:clamp(8px, 1.1vw, 14px) !important;}
 .stat-card{padding:clamp(14px, 2vw, 26px) clamp(6px, 1.4vw, 18px) !important;}
-.stat-num{font-size:clamp(11px, 1.6vw, 22px) !important; line-height:1.5 !important;}
-.stat-label{font-size:clamp(15px, 1.4vw, 18px) !important; line-height:1.35 !important;}
+.stat-num{font-size:clamp(26px, 2.6vw, 32px) !important; line-height:1.2 !important;}
+.stat-label{font-size:clamp(11px, 1.1vw, 13px) !important; line-height:1.4 !important; letter-spacing:.02em !important;}
 .skill-card{padding:clamp(16px, 2.2vw, 26px) clamp(10px, 1.8vw, 24px) !important;}
 /* timeline: padding kiri selalu cukup untuk dot (sebelumnya dot menimpa teks di mobile) */
 .t-item{padding:0 0 clamp(30px, 3.4vw, 44px) clamp(36px, 3.6vw, 44px) !important;}
@@ -375,4 +394,152 @@ footer{border-top:var(--px-border);}
   .hero-visual{order:0 !important; width:auto !important; justify-content:flex-end !important; padding:0 !important;}
   .fox-stage{width:clamp(280px, 30vw, 340px) !important; margin:0 0 0 auto !important;}
   .hero-copy{max-width:none !important;} /* isi penuh kolom kiri supaya marquee & tombol sejajar gutter */
+}
+
+/* ==========================================================================
+   PERBAIKAN UI/UX — MOBILE, MICRO-INTERACTION, KONSISTENSI VISUAL
+   Ditambahkan sebagai overlay lanjutan; tidak mengubah struktur di atas.
+   ========================================================================== */
+
+/* ---------- 1. TAP TARGET ≥44px (aksesibilitas sentuh, tanpa mengubah ukuran visual) ----------
+   Pakai pseudo-element sebagai hit-area transparan yang meluas melewati box visual,
+   jadi tombol kecil (theme-toggle, lang-btn, nav-toggle) tetap terlihat kompak
+   tapi area klik sungguhannya memenuhi standar 44x44px. */
+.theme-toggle,.nav-toggle,.lang-btn{position:relative;}
+.theme-toggle::after,.nav-toggle::after,.lang-btn::after{
+  content:''; position:absolute; inset:50%; width:44px; height:44px;
+  transform:translate(-50%,-50%); z-index:1;
+}
+.back-to-top,.chat-fab{min-width:44px !important; min-height:44px !important;}
+
+/* ---------- 2. FEEDBACK KLIK/TAP KONSISTEN (pixel "press" di semua elemen interaktif) ----------
+   Menyatukan efek tekan gaya pixel: turun + shadow mengecil, dipakai lewat class
+   .px-pressed (ditambah script.js saat touchstart) supaya perangkat sentuh juga
+   dapat feedback yang sama seperti :active di desktop. */
+.stat-card.px-pressed,.skill-card.px-pressed,.proj-card.px-pressed{
+  transform:translate(2px,2px) !important; box-shadow:2px 2px 0 var(--ink) !important;
+  transition:transform .08s steps(2), box-shadow .08s steps(2) !important;
+}
+.chip.px-pressed,.badge.px-pressed{
+  transform:translate(1px,1px) !important; box-shadow:1px 1px 0 var(--ink) !important;
+}
+.stat-card:active,.skill-card:active,.proj-card:active{transform:translate(2px,2px) !important; box-shadow:2px 2px 0 var(--ink) !important;}
+.chip:active,.badge:active{transform:translate(1px,1px) !important; box-shadow:1px 1px 0 var(--ink) !important;}
+
+/* ---------- 3. TRANSISI REVEAL LEBIH "HIDUP" — stagger per section (delay diatur script.js) ----------
+   Durasi dipercepat sedikit dan kurva dibuat sedikit overshoot ala pixel-snap,
+   supaya konten muncul terasa "menetap di tempat" bukan cuma fade biasa. */
+.reveal,.reveal-scale{transition-duration:.5s !important; transition-timing-function:steps(6) !important;}
+.reveal.in-view{animation:pxSettle .32s steps(4) 1;}
+@keyframes pxSettle{0%{transform:translate3d(0,6px,0);}60%{transform:translate3d(0,-2px,0);}100%{transform:translate3d(0,0,0);}}
+
+/* ---------- 4. LOADING SKELETON UNTUK GAMBAR PROJECT (sebelum gambar termuat) ----------
+   Placeholder pixel-checker yang "berkedip" pelan sampai <img> selesai load,
+   menggantikan area kosong polos supaya transisi ke gambar terasa lebih halus. */
+.proj-thumb{position:relative; background:var(--gray-100);}
+.proj-thumb img,.proj-thumb video{opacity:0; transition:opacity .3s steps(4);}
+.proj-thumb img.px-loaded,.proj-thumb video.px-loaded{opacity:1;}
+.proj-thumb:not(.thumb-missing)::before{
+  content:''; position:absolute; inset:0; z-index:0;
+  background-image:linear-gradient(45deg, var(--gray-200) 25%, transparent 25%, transparent 75%, var(--gray-200) 75%),
+                    linear-gradient(45deg, var(--gray-200) 25%, transparent 25%, transparent 75%, var(--gray-200) 75%);
+  background-size:16px 16px; background-position:0 0, 8px 8px;
+  animation:pxSkeletonBlink 1.4s steps(2) infinite;
+}
+.proj-thumb:has(img.px-loaded)::before,.proj-thumb:has(video.px-loaded)::before{display:none;}
+@keyframes pxSkeletonBlink{0%,100%{opacity:.5;}50%{opacity:.25;}}
+[data-theme="dark"] .proj-thumb:not(.thumb-missing)::before{
+  background-image:linear-gradient(45deg, #2a251d 25%, transparent 25%, transparent 75%, #2a251d 75%),
+                    linear-gradient(45deg, #2a251d 25%, transparent 25%, transparent 75%, #2a251d 75%);
+}
+
+/* ---------- 5. TRANSISI ANTAR-SECTION LEBIH SMOOTH (scroll snap ringan, opsional halus) ----------
+   Tidak pakai scroll-snap penuh (bisa terasa memaksa di mobile), cukup
+   scroll-behavior halus + sedikit padding-top supaya anchor navbar tidak menutupi judul. */
+html{scroll-behavior:smooth; scroll-padding-top:calc(var(--px-gutter) + 76px);}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+
+/* ---------- 6. KONSISTENSI VISUAL — satukan shadow & border-radius yang masih "acak" ----------
+   Beberapa komponen lama (chat-panel, chat-header-avatar, nav-logo-img) masih pakai
+   border-radius bulat + shadow soft ala neumorphism, bentrok dengan gaya pixel keras
+   di komponen lain. Disamakan ke bahasa visual pixel: kotak, border tegas, shadow hard. */
+.chat-panel{border-radius:0 !important;}
+.chat-header-avatar{border-radius:0 !important; border:2px solid var(--ink) !important; box-shadow:none !important;}
+.nav-logo-img{border-radius:0 !important;}
+.msg-bubble{border-radius:0 !important;}
+.chat-input,.chat-send{border-radius:0 !important;}
+.fab-badge{border-radius:0 !important;}
+
+/* ---------- 7. MOBILE UX: NAVBAR — jarak & ukuran tombol lebih lega, cegah crowding ----------
+   Pada layar sempit, grup lang-switch + theme-toggle + nav-toggle cenderung berdesakan
+   dan margin antar elemen tidak konsisten (2px, 4px, 6px tercampur di style.css).
+   Disamakan ke satu jarak (8px) supaya kelompok kontrol kanan navbar terlihat rapi. */
+@media (max-width:980px){
+  .navbar{gap:8px !important;}
+  .lang-switch,.theme-toggle,.nav-toggle{margin-left:0 !important; margin-right:0 !important;}
+  .navbar > .lang-switch,.navbar > .theme-toggle,.navbar > .nav-toggle{margin:0 !important;}
+}
+
+/* ---------- 8. MOBILE UX: DIALOG FOX — pastikan tidak overflow di layar sangat sempit ----------
+   Sebelumnya width:max-content bisa melebihi layar pada device <340px; dibatasi
+   dengan max-width relatif viewport dan word-wrap dipastikan aktif. */
+@media (max-width:400px){
+  .px-dialog{max-width:80vw !important; font-size:13px !important;}
+}
+
+/* ---------- 9. MOBILE UX: FORM — pastikan input tidak memicu auto-zoom iOS (font-size < 16px) ----------
+   iOS Safari otomatis zoom in saat fokus ke input dengan font-size di bawah 16px,
+   ini mengganggu alur pengisian form kontak di HP. Dikunci minimal 16px saat fokus. */
+@media (max-width:980px){
+  .form-row input,.form-row textarea,.chat-input,.chat-setup input{font-size:max(16px, 1em) !important;}
+}
+
+/* ---------- 10. MICRO-INTERACTION: nav-links aktif berpindah lebih terasa (pixel snap, bukan slide halus) ---------- */
+.nav-links a{transition:transform .1s steps(2), box-shadow .1s steps(2), background-color .1s steps(2) !important;}
+
+/* ---------- 11. FOCUS STATE — aksesibilitas keyboard, gaya pixel (outline kotak, bukan ring blur) ---------- */
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,.btn:focus-visible,.nav-cta:focus-visible{
+  outline:3px solid var(--orange) !important; outline-offset:2px !important; box-shadow:none !important;
+}
+
+/* ---------- 12. BACK-TO-TOP & CHAT-FAB — feedback tekan konsisten dengan tombol lain ---------- */
+.back-to-top:active,.chat-fab:active{transform:translate(2px,2px) !important; box-shadow:1px 1px 0 var(--ink) !important;}
+
+
+/* ==========================================================================
+   ANIMASI BARU — STARFIELD HERO, TYPEWRITER JUDUL, SKILL ICON POP
+   ========================================================================== */
+
+/* ---------- STARFIELD CANVAS: dudukkan di belakang hero-grid & blob, tetap di bawah konten ---------- */
+.px-starfield{position:absolute !important; inset:0; z-index:0; pointer-events:none; image-rendering:pixelated;}
+.hero-grid,.blob{position:relative; z-index:1;}
+.hero-inner{position:relative; z-index:2;}
+[data-theme="dark"] .px-starfield{opacity:.9;}
+.px-starfield{opacity:.65;}
+
+/* ---------- TYPEWRITER: kursor berkedip di ujung teks selama proses mengetik ---------- */
+.px-typing{position:relative;}
+.px-typing::after{
+  content:''; display:inline-block; width:3px; height:.85em; margin-left:2px;
+  background:var(--orange); vertical-align:middle; animation:blinkDot .6s steps(2) infinite;
+}
+.hero-copy h1{min-height:1.35em;} /* cegah layout jump saat teks masih kosong di awal ketik */
+
+/* ---------- SKILL ICON POP: meletup dari kecil + rotasi kecil ke ukuran normal, gaya pixel-snap ----------
+   Progressive enhancement: default tetap terlihat (fallback aman jika JS/IO gagal),
+   class .px-icon-ready (ditambah JS saat IntersectionObserver tersedia) yang menyembunyikan
+   sebelum .px-icon-pop memicu animasi masuk. */
+.sk-icon.px-icon-ready{transform:scale(0) rotate(-8deg); opacity:0;}
+.sk-icon.px-icon-pop{
+  animation:pxIconPop .45s steps(6) forwards;
+}
+@keyframes pxIconPop{
+  0%{transform:scale(0) rotate(-8deg); opacity:0;}
+  60%{transform:scale(1.25) rotate(4deg); opacity:1;}
+  80%{transform:scale(.92) rotate(-2deg);}
+  100%{transform:scale(1) rotate(0deg); opacity:1;}
+}
+@media (prefers-reduced-motion:reduce){
+  .sk-icon{transform:none; opacity:1; animation:none !important;}
+  .px-typing::after{display:none;}
 }
