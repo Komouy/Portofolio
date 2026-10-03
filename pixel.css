@@ -1652,3 +1652,147 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
   color: #f87171;
   border-color: rgba(239, 68, 68, 0.3);
 }
+
+/* ==========================================================================
+   CUSTOM RADIO GROUP — pengganti native <select> yang jelek di mobile
+   ========================================================================== */
+.cf-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.cf-radio-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #dfd8ce;
+  background: #faf8f5;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cf-radio-item:hover {
+  border-color: var(--orange);
+  background: rgba(249, 115, 22, 0.05);
+}
+
+/* Hide native radio but keep it accessible */
+.cf-radio-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Custom radio circle */
+.cf-radio-custom {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #c0b8ae;
+  background: #fff;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.18s ease, background 0.18s ease;
+  position: relative;
+}
+
+.cf-radio-custom::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.cf-radio-input:checked ~ .cf-radio-custom {
+  border-color: var(--orange);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
+}
+
+.cf-radio-input:checked ~ .cf-radio-custom::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.cf-radio-label {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* Selected state: item highlights */
+.cf-radio-item:has(.cf-radio-input:checked) {
+  border-color: var(--orange);
+  background: rgba(249, 115, 22, 0.07);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.12);
+}
+
+/* Dark mode */
+[data-theme="dark"] .cf-radio-item {
+  background: #1a1510;
+  border-color: #352b1e;
+  color: #f5efe6;
+}
+
+[data-theme="dark"] .cf-radio-item:hover {
+  border-color: var(--orange);
+  background: rgba(249, 115, 22, 0.08);
+}
+
+[data-theme="dark"] .cf-radio-custom {
+  background: #231d16;
+  border-color: #4a3d2e;
+}
+
+[data-theme="dark"] .cf-radio-input:checked ~ .cf-radio-custom {
+  border-color: var(--orange);
+  background: #231d16;
+}
+
+[data-theme="dark"] .cf-radio-label {
+  color: #ede5d8;
+}
+
+[data-theme="dark"] .cf-radio-item:has(.cf-radio-input:checked) {
+  border-color: var(--orange);
+  background: rgba(249, 115, 22, 0.1);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.2);
+}
+
+/* Pixel theme: square corners */
+.cf-radio-item {
+  border-radius: 0 !important;
+}
+.cf-radio-custom {
+  border-radius: 0 !important;
+}
+.cf-radio-custom::after {
+  border-radius: 0 !important;
+  width: 6px;
+  height: 6px;
+}
+
+/* Marquee: show grab cursor to hint it's draggable */
+.px-marquee {
+  cursor: grab;
+}
+.px-marquee:active {
+  cursor: grabbing;
+}
+

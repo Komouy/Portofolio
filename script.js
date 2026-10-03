@@ -32,7 +32,7 @@
       skills_sub: "Kombinasi frontend, backend, database, dan AI untuk membangun solusi end-to-end.",
       proj_eyebrow: "Featured Projects",
       proj_title: "Beberapa karya yang saya bangun.",
-      proj1_desc: `<strong>PropAcademyForex.com</strong> adalah platform prop trading yang saya kembangkan dengan Dashboard Trader dan Dashboard Affiliate untuk memantau performa akun, referral, serta komisi secara real-time.`,
+      proj1_desc: `<strong>PropFirmAcademyForex.com</strong> adalah platform prop-trading yang saya bangun — lengkap dengan Dashboard Trader real-time (performa akun, drawdown, challenge) dan Dashboard Affiliate (referral, komisi, ranking) yang terintegrasi dengan sistem challenge otomatis.`,
       proj2_desc: `<strong>Informatika - UIN Saizu</strong> adalah platform informasi mahasiswa Informatika UIN Saizu yang mengelola pengumuman, jadwal, deadline, lomba, informasi dosen, dan berbagai informasi kelas secara terstruktur.`,
       proj3_desc: `<strong>SMK Ma'arif 1 Kembaran</strong> adalah website profil sekolah dan portal PPDB Online serta Bursa Kerja Khusus (BKK) yang dirancang modern, responsif, dan memudahkan akses informasi bagi calon siswa serta alumni.`,
       proj4_desc: `<strong>Arunika AI</strong> adalah aplikasi desktop berbasis AI yang memungkinkan pengguna berinteraksi dengan Large Language Models (LLM) secara langsung untuk membantu berbagai kebutuhan produktivitas melalui antarmuka yang sederhana dan modern.`,
@@ -330,13 +330,58 @@
       // hemat CPU/baterai: pause saat section tidak terlihat
       const sec = grid.closest('section');
       if (sec && 'IntersectionObserver' in window) {
-        const vio = new IntersectionObserver(entries => {
+      const vio = new IntersectionObserver(entries => {
           entries.forEach(en => grid.classList.toggle('marquee-paused', !en.isIntersecting));
         }, { rootMargin: '150px 0px' });
         vio.observe(sec);
       }
+
+      // ===== SWIPE / DRAG MANUAL untuk mobile & desktop =====
+      let _dragStartX = 0, _dragOffset = 0, _isDragging = false;
+      let _velX = 0, _lastX = 0, _lastT = 0, _momRAF = null;
+
+      const _getX = () => { const m = new DOMMatrix(window.getComputedStyle(grid).transform); return m.m41; };
+      const _pauseAnim = () => { grid.style.animationPlayState = 'paused'; };
+      const _resumeAnim = () => { grid.style.transform = ''; grid.style.animationPlayState = ''; };
+
+      const _onStart = (cx) => {
+        if (_momRAF) { cancelAnimationFrame(_momRAF); _momRAF = null; }
+        _isDragging = true; _dragStartX = cx; _dragOffset = _getX();
+        _lastX = cx; _lastT = Date.now(); _velX = 0;
+        _pauseAnim(); grid.style.transform = `translateX(${_dragOffset}px)`;
+        grid.style.cursor = 'grabbing';
+      };
+      const _onMove = (cx) => {
+        if (!_isDragging) return;
+        const now = Date.now(), dt = now - _lastT || 16;
+        _velX = (cx - _lastX) / dt * 16; _lastX = cx; _lastT = now;
+        grid.style.transform = `translateX(${_dragOffset + cx - _dragStartX}px)`;
+      };
+      const _onEnd = () => {
+        if (!_isDragging) return;
+        _isDragging = false; grid.style.cursor = '';
+        const halfW = grid.scrollWidth / 2;
+        let cur = parseFloat((grid.style.transform.match(/-?[\d.]+/) || ['0'])[0]);
+        const go = () => {
+          _velX *= 0.88; cur += _velX;
+          if (cur > 0) cur -= halfW; if (cur < -halfW) cur += halfW;
+          grid.style.transform = `translateX(${cur}px)`;
+          if (Math.abs(_velX) > 0.5) { _momRAF = requestAnimationFrame(go); }
+          else { _resumeAnim(); }
+        };
+        _momRAF = requestAnimationFrame(go);
+      };
+
+      grid.addEventListener('touchstart', e => _onStart(e.touches[0].clientX), { passive: true });
+      grid.addEventListener('touchmove',  e => _onMove(e.touches[0].clientX),  { passive: true });
+      grid.addEventListener('touchend',   () => _onEnd());
+      grid.addEventListener('pointerdown', e => { grid.setPointerCapture(e.pointerId); _onStart(e.clientX); });
+      grid.addEventListener('pointermove', e => { if (e.buttons) _onMove(e.clientX); });
+      grid.addEventListener('pointerup',   () => _onEnd());
+      grid.addEventListener('pointercancel', () => _onEnd());
     });
   })();
+
 
   // ---------- HERO INTERACTIVE GRID UX (mouse-following spotlight & tactile response) ----------
   (function initHeroGridUX() {
@@ -1143,7 +1188,7 @@ Sistem otomatis merender formulir konsultasi interaktif di dalam percakapan chat
   function addGreeting() {
     if (!chatMessages) return;
     const greet = currentLang === 'en'
-      ? "Halo! Saya adalah AI asisten KadalApi. Tanyakan apa saja seputar keahlian, pengalaman, estimasi harga jasa, atau kirimkan form konsultasi langsung ke Dhaifan."
+      ? "Hi! I'm KadalApi's AI assistant. Ask me anything about Dhaifan's skills, projects, pricing estimates, or send a consultation form straight to him."
       : "Halo! Saya adalah AI asisten KadalApi. Tanyakan apa saja seputar keahlian, pengalaman, estimasi harga jasa, atau kirimkan form konsultasi langsung ke Dhaifan.";
     appendMessage('bot', greet);
   }
@@ -1206,12 +1251,28 @@ Sistem otomatis merender formulir konsultasi interaktif di dalam percakapan chat
         </div>
         <div class="cf-field">
           <label>${topicLabel}</label>
-          <select class="cf-input cf-input-topic">
-            <option value="Pembuatan Website Modern">${isEn ? 'Modern Website Development' : 'Pembuatan Website Modern'}</option>
-            <option value="Integrasi AI & LLM">${isEn ? 'AI & LLM Integration' : 'Integrasi AI & Large Language Model'}</option>
-            <option value="Konsultasi Proyek & Kerjasama">${isEn ? 'Project Consultation & Collaboration' : 'Konsultasi Proyek & Kerjasama'}</option>
-            <option value="Pertanyaan Umum">${isEn ? 'General Question' : 'Pertanyaan Umum Lainnya'}</option>
-          </select>
+          <div class="cf-radio-group">
+            <label class="cf-radio-item">
+              <input type="radio" name="cf-topic-${Date.now()}" class="cf-radio-input" value="Pembuatan Website Modern" checked>
+              <span class="cf-radio-custom"></span>
+              <span class="cf-radio-label">${isEn ? 'Modern Website Development' : 'Pembuatan Website Modern'}</span>
+            </label>
+            <label class="cf-radio-item">
+              <input type="radio" name="cf-topic-${Date.now()}" class="cf-radio-input" value="Integrasi AI & LLM">
+              <span class="cf-radio-custom"></span>
+              <span class="cf-radio-label">${isEn ? 'AI & LLM Integration' : 'Integrasi AI & Large Language Model'}</span>
+            </label>
+            <label class="cf-radio-item">
+              <input type="radio" name="cf-topic-${Date.now()}" class="cf-radio-input" value="Konsultasi Proyek & Kerjasama">
+              <span class="cf-radio-custom"></span>
+              <span class="cf-radio-label">${isEn ? 'Project Consultation & Collaboration' : 'Konsultasi Proyek & Kerjasama'}</span>
+            </label>
+            <label class="cf-radio-item">
+              <input type="radio" name="cf-topic-${Date.now()}" class="cf-radio-input" value="Pertanyaan Umum">
+              <span class="cf-radio-custom"></span>
+              <span class="cf-radio-label">${isEn ? 'General Question' : 'Pertanyaan Umum Lainnya'}</span>
+            </label>
+          </div>
         </div>
         <div class="cf-field">
           <label>${msgLabel} <span class="cf-req">*</span></label>
@@ -1237,14 +1298,20 @@ Sistem otomatis merender formulir konsultasi interaktif di dalam percakapan chat
 
     const nameInput = card.querySelector('.cf-input-name');
     const contactInput = card.querySelector('.cf-input-contact');
-    const topicSelect = card.querySelector('.cf-input-topic');
+    const getTopicValue = () => {
+      const checked = card.querySelector('.cf-radio-input:checked');
+      return checked ? checked.value : '';
+    };
     const msgInput = card.querySelector('.cf-input-msg');
     const btnWa = card.querySelector('.cf-btn-wa');
     const btnEmail = card.querySelector('.cf-btn-email');
     const statusBox = card.querySelector('.cf-status');
 
     if (defaultMsg) msgInput.value = defaultMsg;
-    if (defaultTopic) topicSelect.value = defaultTopic;
+    if (defaultTopic) {
+      const radios = card.querySelectorAll('.cf-radio-input');
+      radios.forEach(r => { r.checked = (r.value === defaultTopic); });
+    }
 
     const validate = () => {
       const name = nameInput.value.trim();
@@ -1269,7 +1336,7 @@ Sistem otomatis merender formulir konsultasi interaktif di dalam percakapan chat
       if (!validate()) return;
       const name = nameInput.value.trim();
       const contact = contactInput.value.trim();
-      const topic = topicSelect.value;
+      const topic = getTopicValue();
       const msg = msgInput.value.trim();
 
       const text = isEn
@@ -1303,7 +1370,7 @@ ${msg}`;
       if (!validate()) return;
       const name = nameInput.value.trim();
       const contact = contactInput.value.trim();
-      const topic = topicSelect.value;
+      const topic = getTopicValue();
       const msg = msgInput.value.trim();
 
       const subject = isEn ? `[Portfolio Consultation] ${topic} - ${name}` : `[Konsultasi Portofolio] ${topic} - ${name}`;
