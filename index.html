@@ -646,21 +646,55 @@
           </div>
         </div>
 
-        <form class="form-card" id="contactForm">
-          <div class="form-row">
-            <label for="name" data-i18n="label_name">Nama</label>
-            <input id="name" name="name" type="text" placeholder="Nama lengkap Anda" data-i18n-ph="ph_name" required>
+        <div class="contact-right-panel">
+          <!-- EMBEDDED CHATBOT (CHATGPT / GEMINI UI/UX) -->
+          <div class="chat-embed-card" id="chatEmbed">
+            <!-- Header bar ala ChatGPT / Gemini -->
+            <div class="chat-embed-header">
+              <div class="chat-ai-profile">
+                <div class="chat-ai-avatar">
+                  <img src="logo.png" alt="KadalApi" class="chat-avatar-img">
+                </div>
+                <div class="chat-ai-details">
+                  <div class="chat-ai-name-row">
+                    <h4>KadalApi Assistant</h4>
+                  </div>
+                  <span class="chat-ai-sub"><span class="status-dot"></span><span data-i18n="chat_status_ready">Online • Siap Menjawab</span></span>
+                </div>
+              </div>
+              <div class="chat-header-actions">
+                <button type="button" class="chat-reset-btn" id="chatReset" title="Mulai Chat Baru" aria-label="Mulai Chat Baru">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/>
+                    <path d="M3 3v5h5"/>
+                  </svg>
+                  <span data-i18n="chat_btn_reset">Reset Chat</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Messages area -->
+            <div class="chat-embed-messages" id="chatMessages" role="log" aria-live="polite"></div>
+
+            <!-- Suggestion prompt chips (Gemini style) -->
+            <div class="chat-gemini-prompts" id="quickReplies"></div>
+
+            <!-- ChatGPT / Gemini style Prompt Bar -->
+            <div class="chat-gemini-input-container">
+              <div class="chat-prompt-pill">
+                <input class="chat-prompt-input" id="chatInput" type="text" placeholder="Tanya apa saja seputar portofolio &amp; layanan..." data-i18n-ph="chat_ph" autocomplete="off">
+                <button class="chat-send-btn" id="chatSend" aria-label="Kirim Pesan">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="chat-disclaimer" data-i18n="chat_disclaimer">
+                PortoBot AI dapat membuat kekeliruan. Cek kembali informasi penting atau hubungi langsung.
+              </div>
+            </div>
           </div>
-          <div class="form-row">
-            <label for="email" data-i18n="label_email">Email</label>
-            <input id="email" name="email" type="email" placeholder="email@contoh.com" data-i18n-ph="ph_email" required>
-          </div>
-          <div class="form-row">
-            <label for="message" data-i18n="label_msg">Pesan</label>
-            <textarea id="message" name="message" placeholder="Ceritakan tentang project Anda..." data-i18n-ph="ph_msg" required></textarea>
-          </div>
-          <button type="submit" class="form-submit magnetic" data-i18n="btn_submit">Kirim Pesan</button>
-        </form>
+        </div>
       </div>
     </div>
   </div>
@@ -682,46 +716,6 @@
     <path d="M12 19V5M5 12l7-7 7 7"/>
   </svg>
 </button>
-
-<!-- ========== CHATBOT WIDGET ========== -->
-<!-- Tombol FAB Chat -->
-<button class="chat-fab" id="chatFab" aria-label="Chat dengan AI">
-  <div class="fab-badge" id="chatBadge">1</div>
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-    <path d="M8 10h8M8 14h5"/>
-  </svg>
-</button>
-
-<!-- Panel Chat -->
-<div class="chat-panel" id="chatPanel" role="dialog" aria-label="Chat AI KadalApi">
-  <!-- Header -->
-  <div class="chat-header">
-    <div class="sheet-handle"></div>
-    <div class="chat-header-avatar">
-      <img src="logo.png" alt="KadalApi" class="chat-avatar-img">
-    </div>
-    <div class="chat-header-info">
-      <h4>KadalApi Assistant</h4>
-      <span><span class="status-dot"></span>Online</span>
-    </div>
-    <button class="chat-close" id="chatClose" aria-label="Tutup chat">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-    </button>
-  </div>
-
-  <!-- Tampilan Chat Utama -->
-  <div id="chatMain" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-quick-replies" id="quickReplies"></div>
-    <div class="chat-input-row">
-      <input class="chat-input" id="chatInput" type="text" placeholder="Tanya apa saja tentang saya..." autocomplete="off">
-      <button class="chat-send" id="chatSend" aria-label="Kirim">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-      </button>
-    </div>
-  </div>
-</div>
 
 <script src="script.js" defer></script>
 </body>

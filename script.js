@@ -19,6 +19,7 @@
       hero_badge_4: `<span class="ic"></span>UI Modern`,
       hero_chip_1: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.4L18.4 21 12 16.6 5.6 21 8 13.6l-6-4.4h7.6z"/></svg>Berbasis AI`,
       hero_chip_2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>Responsif`,
+      loader_hint_continue: "KLIK DIMANA SAJA UNTUK MELANJUTKAN",
       about_eyebrow: "Tentang Saya",
       about_title: "Fokus pada solusi digital yang nyata dampaknya.",
       about_p1: "Saya Dhaifan, siswa RPL yang membangun solusi digital jauh sebelum lulus. Dari platform prop-trading forex hingga aplikasi desktop dengan AI lokal — saya tidak hanya belajar teknologi, tapi langsung menerapkannya untuk kebutuhan yang nyata.",
@@ -54,6 +55,12 @@
       contact_eyebrow: "Contact",
       contact_title: "Let's Build Something Amazing Together.",
       contact_sub: "Punya ide project atau ingin berkolaborasi? Kirim pesan, dan mari kita mulai diskusinya.",
+      tab_ai_chat: "AI Assistant (Gemini)",
+      tab_direct_form: "Form Pesan Cepat",
+      chat_ph: "Tanya apa saja seputar portofolio & layanan...",
+      chat_disclaimer: "PortoBot AI dapat membuat kekeliruan. Cek kembali informasi penting atau hubungi langsung.",
+      chat_status_ready: "Online • Siap Menjawab",
+      chat_btn_reset: "Reset Chat",
       label_name: "Nama",
       ph_name: "Nama lengkap Anda",
       label_email: "Email",
@@ -61,7 +68,7 @@
       label_msg: "Pesan",
       ph_msg: "Ceritakan tentang project Anda...",
       btn_submit: "Kirim Pesan",
-      btn_sent: "Terkirim ✓",
+      btn_sent: "Terkirim",
       footer_rights: "© 2026 Moch Dhaifan Al Qhadafy. Hak Cipta Dilindungi."
     },
     en: {
@@ -83,6 +90,7 @@
       hero_badge_4: `<span class="ic"></span>Modern UI`,
       hero_chip_1: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.4L18.4 21 12 16.6 5.6 21 8 13.6l-6-4.4h7.6z"/></svg>AI-Driven`,
       hero_chip_2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>Responsive`,
+      loader_hint_continue: "CLICK ANYWHERE TO CONTINUE",
       about_eyebrow: "About Me",
       about_title: "Focusing on digital solutions with real impact.",
       about_p1: "I'm Dhaifan, an RPL student who builds real-world digital solutions well before graduation. From a forex prop-trading platform to a desktop app powered by local LLMs — I don't just study technology; I apply it where it actually matters.",
@@ -118,6 +126,12 @@
       contact_eyebrow: "Contact",
       contact_title: "Let's Build Something Amazing Together.",
       contact_sub: "Have a project idea or want to collaborate? Send a message and let's start a conversation.",
+      tab_ai_chat: "AI Assistant (Gemini)",
+      tab_direct_form: "Quick Message Form",
+      chat_ph: "Ask anything about skills, projects or services...",
+      chat_disclaimer: "PortoBot AI can make mistakes. Verify important info or contact directly.",
+      chat_status_ready: "Online • Ready to Help",
+      chat_btn_reset: "Reset Chat",
       label_name: "Name",
       ph_name: "Your full name",
       label_email: "Email",
@@ -125,7 +139,7 @@
       label_msg: "Message",
       ph_msg: "Tell me about your project...",
       btn_submit: "Send Message",
-      btn_sent: "Sent ✓",
+      btn_sent: "Sent",
       footer_rights: "© 2026 Moch Dhaifan Al Qhadafy. All rights reserved."
     }
   };
@@ -191,6 +205,7 @@
         }
         el.classList.remove('i18n-changing');
       });
+      if (typeof renderQuickReplies === 'function') renderQuickReplies();
     }, 200);
   }
 
@@ -325,7 +340,7 @@
 
   // ---------- HERO INTERACTIVE GRID UX (mouse-following spotlight & tactile response) ----------
   (function initHeroGridUX() {
-    const hero = document.getElementById('home');
+    const hero = document.getElementById('heroAboutZone') || document.getElementById('home');
     const grid = document.getElementById('heroGrid');
     if (!hero || !grid) return;
 
@@ -670,32 +685,66 @@
           pupilR.setAttribute('y', 16 + eyeDy);
         }
       };
-      document.addEventListener('mousemove', (e) => {
-        if (!foxRect) foxRect = foxStage.getBoundingClientRect();
-        const cx = foxRect.left + foxRect.width/2, cy = foxRect.top + foxRect.height/2;
-        fdx = (e.clientX - cx) / foxRect.width;
-        fdy = (e.clientY - cy) / foxRect.height;
-        if (!foxRaf) foxRaf = requestAnimationFrame(applyFox);
-      }, { passive: true });
+      if (window.matchMedia('(pointer:fine)').matches) {
+        document.addEventListener('mousemove', (e) => {
+          if (!foxRect) foxRect = foxStage.getBoundingClientRect();
+          const cx = foxRect.left + foxRect.width/2, cy = foxRect.top + foxRect.height/2;
+          fdx = (e.clientX - cx) / foxRect.width;
+          fdy = (e.clientY - cy) / foxRect.height;
+          if (!foxRaf) foxRaf = requestAnimationFrame(applyFox);
+        }, { passive: true });
+      }
 
-      // Klik fox: salto/loncat lalu kembali ke rumput + efek +1 & dialog ala RPG
+      // Klik / Tap fox: salto/loncat lalu kembali ke rumput + efek +1 & dialog ala RPG
       let pxScore = 0;
-      const pxLines = ['Salto sukses! Aku Fox_404.', 'Loncat lagi! +1 poin!', 'Kamu hebat!999 poin?', 'Mode pixel aktif!', 'Orange power!'];
+      const pxLinesID = [
+        'Menyala abangkuh! Salto mulus.',
+        'Gacor kang! +1 aura points.',
+        'Spam terus wir, jangan kasih kendor!',
+        'Anjay salto 360 no scope!',
+        'Info loker atlet senam lantai kah?',
+        'Valid no debat, skill gw emang GG!',
+        'Waduh pusing pala barbie muter mulu.',
+        'Santai dulu gak sih, ngopi ngapa ngopi.'
+      ];
+      const pxLinesEN = [
+        'Bro really made me backflip.',
+        'Bro is cooking! +1000 aura.',
+        'Sheesh! Clean 360 flip!',
+        'Stop spamming me bruh!',
+        'Valid! Pure gamer instinct!',
+        'Gymnast fox in the house!',
+        'Dizzy mode activated.',
+        'Orange power never dies!'
+      ];
       let pxIdx = 0;
-      foxStage.addEventListener('click', () => {
+      let saltoTimer = null;
+
+      const triggerSalto = () => {
         pxScore++;
 
         // Trigger animasi salto (loncat + putar balik + mendarat di rumput)
-        if (foxChar && !foxChar.classList.contains('salto')) {
+        if (foxChar) {
+          foxChar.classList.remove('salto');
+          foxStage.classList.remove('salto-active');
+          void foxChar.offsetWidth; // Force reflow agar animasi bisa langsung diulang saat spam tap/klik
           foxChar.classList.add('salto');
           foxStage.classList.add('salto-active');
+
+          if (saltoTimer) clearTimeout(saltoTimer);
+          saltoTimer = setTimeout(() => {
+            if (foxChar) foxChar.classList.remove('salto');
+            if (foxStage) foxStage.classList.remove('salto-active');
+          }, 950);
+
           const onSaltoEnd = (ev) => {
-            if (ev.animationName !== 'pxSalto') return;
-            foxChar.classList.remove('salto');
-            foxStage.classList.remove('salto-active');
+            if (ev.animationName && ev.animationName !== 'pxSalto') return;
+            if (foxChar) foxChar.classList.remove('salto');
+            if (foxStage) foxStage.classList.remove('salto-active');
+            if (saltoTimer) { clearTimeout(saltoTimer); saltoTimer = null; }
             foxChar.removeEventListener('animationend', onSaltoEnd);
           };
-          foxChar.addEventListener('animationend', onSaltoEnd);
+          foxChar.addEventListener('animationend', onSaltoEnd, { once: true });
         }
 
         if (pxHit) {
@@ -705,11 +754,66 @@
           pxHit.classList.add('show');
         }
         if (pxDialog) {
-          pxIdx = (pxIdx + 1) % pxLines.length;
-          pxDialog.textContent = pxScore >= 10 ? 'Wow! ' + pxScore + ' klik! Kamu gamer sejati!' : pxLines[pxIdx];
+          const isEn = document.documentElement.getAttribute('lang') === 'en';
+          const lines = isEn ? pxLinesEN : pxLinesID;
+          pxIdx = (pxIdx + 1) % lines.length;
+
+          if (pxScore >= 50) {
+            pxDialog.textContent = isEn
+              ? `Bro hit ${pxScore} clicks! Infinite aura gigachad!`
+              : `Gokil wir! ${pxScore} klik, jarinya dari vibranium?!`;
+          } else if (pxScore >= 25) {
+            pxDialog.textContent = isEn
+              ? `${pxScore} clicks?! Certified gaming demon!`
+              : `Busett ${pxScore} klik! Gacor parah no counter!`;
+          } else if (pxScore >= 10) {
+            pxDialog.textContent = isEn
+              ? `Damn, ${pxScore} clicks! Bro is locked in!`
+              : `Udah ${pxScore} klik nih, fiks gabut tapi keren abiez!`;
+          } else {
+            pxDialog.textContent = lines[pxIdx];
+          }
+
           pxDialog.classList.add('show');
           clearTimeout(foxStage._pxT);
           foxStage._pxT = setTimeout(() => pxDialog.classList.remove('show'), 1600);
+        }
+      };
+
+      // Support click, touch, and keyboard (Enter / Space)
+      let touchStartX = 0, touchStartY = 0, touchMoved = false;
+
+      foxStage.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) return;
+        const t = e.touches[0];
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        touchMoved = false;
+      }, { passive: true });
+
+      foxStage.addEventListener('touchmove', (e) => {
+        if (touchMoved) return;
+        const t = e.touches[0];
+        if (Math.hypot(t.clientX - touchStartX, t.clientY - touchStartY) > 10) {
+          touchMoved = true;
+        }
+      }, { passive: true });
+
+      foxStage.addEventListener('touchend', (e) => {
+        if (!touchMoved) {
+          e.preventDefault(); // Mencegah 300ms ghost click delay di mobile
+          triggerSalto();
+        }
+      });
+
+      foxStage.addEventListener('click', () => {
+        triggerSalto();
+      });
+
+      foxStage.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          triggerSalto();
         }
       });
     }
@@ -717,6 +821,7 @@
 
   // ---------- contact form submit to WhatsApp ----------
   const form = document.getElementById('contactForm');
+  if (form) {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('name').value.trim();
@@ -746,6 +851,7 @@
       form.reset();
     }, 2500);
   });
+  }
 
   // ---------- stat count-up (rAF, jalan sekali, tidak bocor) ----------
   document.querySelectorAll('.stat-num span').forEach(el => {
@@ -775,10 +881,11 @@
   const pxLoader = document.getElementById('pxLoader');
   const pxFill = document.getElementById('pxLoaderFill');
   const pxText = document.getElementById('pxLoaderText');
+  const pxHint = document.querySelector('.px-loader-hint');
   if (pxLoader) {
     document.body.style.overflow = 'hidden';
     const t0 = performance.now();
-    const MIN_MS = 1100, MAX_MS = 3500;
+    const MIN_MS = 2500; // Slower loading
     let lastShown = -1, done = false;
     const finish = () => {
       if (done) return;
@@ -786,19 +893,33 @@
       pxLoader.classList.add('hide');
       document.body.style.overflow = '';
       setTimeout(() => pxLoader.remove(), 500);
+      document.removeEventListener('click', finish);
+      document.removeEventListener('keydown', finish);
     };
     const tickLoader = (now) => {
       if (done) return;
       const el = now - t0;
-      // ease-out halus menuju 100% dalam MIN_MS, lalu tahan sebentar
+      // ease-out halus menuju 100%
       const p = Math.min(100, Math.round(100 * (1 - Math.pow(1 - Math.min(1, el / MIN_MS), 2))));
       if (p !== lastShown) {
         lastShown = p;
         if (pxFill) pxFill.style.transform = `scaleX(${p / 100})`;
         if (pxText) pxText.textContent = 'LOADING... ' + p + '%';
       }
-      if (el >= MIN_MS + 250 || p >= 100 && el >= MIN_MS) { setTimeout(finish, p >= 100 ? 250 : 0); return; }
-      if (el >= MAX_MS) { finish(); return; }
+      if (p >= 100 && el >= MIN_MS) {
+        if (!pxLoader.dataset.ready) {
+          pxLoader.dataset.ready = 'true';
+          if (pxHint) {
+            const lang = document.documentElement.getAttribute('lang') || 'id';
+            pxHint.textContent = (lang === 'id' ? "KLIK DIMANA SAJA UNTUK MELANJUTKAN" : "CLICK ANYWHERE TO CONTINUE");
+            pxHint.style.animation = "blinkDot 0.8s steps(2) infinite";
+          }
+          pxLoader.style.cursor = "pointer";
+          document.addEventListener('click', finish);
+          document.addEventListener('keydown', finish);
+        }
+        return;
+      }
       requestAnimationFrame(tickLoader);
     };
     requestAnimationFrame(tickLoader);
@@ -883,7 +1004,7 @@
   // ==============================================================
 
   // ──────────────────────────────────────────────────────────────
-  // 🧠 MEMORI CHATBOT — System Prompt
+  // MEMORI CHATBOT — System Prompt
   // Ini adalah "otak" chatbot. Isi semua info tentang Anda di sini.
   // Semakin detail, semakin akurat jawaban AI ke pengunjung.
   // ──────────────────────────────────────────────────────────────
@@ -978,93 +1099,250 @@ Catatan penting soal harga:
 - Jika tanya sesuatu yang tidak kamu tahu tentang Dhaifan: jawab jujur bahwa kamu tidak memiliki info tersebut dan sarankan hubungi langsung
 - Selalu akhiri dengan ajakan untuk menghubungi Dhaifan jika ada pertanyaan lebih lanjut
 - Jangan membuat informasi yang tidak tercantum di atas
-- Gunakan emoji secukupnya agar percakapan terasa hangat`;
+- JANGAN menggunakan emoji sama sekali dalam setiap respon Anda. Berikan jawaban yang lugas, profesional, dan jelas tanpa emoji.
 
-  // Quick replies bilingual
+## SISTEM FORM KONSULTASI / HUBUNGI DHAIFAN
+Jika pengunjung:
+1. Ingin berkonsultasi, bertanya langsung kepada Dhaifan, memesan / order jasa pembuatan website atau aplikasi, berkolaborasi, atau meminta formulir kontak;
+2. Atau memilih opsi formulir konsultasi;
+Maka:
+- Berikan penjelasan ramah, singkat, dan profesional (tanpa emoji).
+- Sertakan tag khusus [SHOW_CONSULTATION_FORM] pada baris baru di akhir pesan Anda.
+Sistem otomatis merender formulir konsultasi interaktif di dalam percakapan chat agar pengunjung dapat langsung mengisi nama, kontak, topik, dan pertanyaannya, yang kemudian otomatis dikirim ke WhatsApp atau Email Dhaifan.`;
+
+  // Quick replies bilingual (Tanpa emoji)
   const QUICK_REPLIES = {
-    id: ['Apa keahlian nya?', 'Berapa harga jasanya?', 'Lihat project', 'Cara menghubungi?'],
-    en: ['What are his skills?', 'What are the prices?', 'Show projects', 'How to contact?']
+    id: [
+      { text: 'Berapa estimasi harga jasanya?', label: 'Harga & Paket Jasa' },
+      { text: 'Apa keahlian dan tech stack utama?', label: 'Keahlian & Tech Stack' },
+      { text: 'Ceritakan project unggulan yang pernah dibuat', label: 'Project Unggulan' },
+      { text: 'Saya ingin mengisi formulir konsultasi untuk menghubungi Dhaifan langsung', label: 'Form Konsultasi / Kontak' }
+    ],
+    en: [
+      { text: 'What are your service rates and packages?', label: 'Pricing & Services' },
+      { text: 'What is your core tech stack and skills?', label: 'Core Tech Stack' },
+      { text: 'Tell me about your featured projects', label: 'Featured Projects' },
+      { text: 'I would like to fill out the consultation form to contact Dhaifan directly', label: 'Consultation Form' }
+    ]
   };
 
   // State chatbot
   let chatHistory = [];       // Riwayat percakapan sesi ini (short-term memory)
-  let chatIsOpen = false;
   let chatIsTyping = false;
   // API dipanggil melalui /api/chat (Vercel Edge Function) — key tersembunyi di server
   const CHAT_API_URL = '/api/chat';
 
   // DOM refs
-  const chatFab = document.getElementById('chatFab');
-  const chatPanel = document.getElementById('chatPanel');
-  const chatCloseBtn = document.getElementById('chatClose');
-  const chatBadge = document.getElementById('chatBadge');
-  const chatMain = document.getElementById('chatMain');
   const chatMessages = document.getElementById('chatMessages');
   const chatInput = document.getElementById('chatInput');
   const chatSend = document.getElementById('chatSend');
   const quickRepliesEl = document.getElementById('quickReplies');
+  const chatResetBtn = document.getElementById('chatReset');
 
-  // Buka/tutup chat panel
-  function toggleChat() {
-    chatIsOpen = !chatIsOpen;
-    chatPanel.classList.toggle('open', chatIsOpen);
-    chatFab.classList.toggle('hide-fab', chatIsOpen);
-    chatBadge.classList.remove('show');
-    if (chatIsOpen) {
-      showChat();
-      setTimeout(() => chatInput.focus(), 350);
-    }
-  }
-
-  function showChat() {
-    if (chatMessages.children.length === 0) {
-      addGreeting();
-      renderQuickReplies();
-    }
-  }
-
-  // Greeting awal dari bot
+  // Greeting awal dari bot (tanpa emoji)
   function addGreeting() {
+    if (!chatMessages) return;
     const greet = currentLang === 'en'
-      ? `Hi there! 👋 I'm KadalApi's AI assistant. Ask me anything — his skills, projects, experience, or how to work together!`
-      : `Halo! 👋 Saya adalah AI asisten KadalApi. Tanyakan apa saja — keahlian, project, pengalaman, atau cara berkolaborasi!`;
+      ? "Halo! Saya adalah AI asisten KadalApi. Tanyakan apa saja seputar keahlian, pengalaman, estimasi harga jasa, atau kirimkan form konsultasi langsung ke Dhaifan."
+      : "Halo! Saya adalah AI asisten KadalApi. Tanyakan apa saja seputar keahlian, pengalaman, estimasi harga jasa, atau kirimkan form konsultasi langsung ke Dhaifan.";
     appendMessage('bot', greet);
   }
 
-  // Render quick reply pills (marquee: bergerak ke kanan, muncul lagi dari kiri)
+  // Render quick reply prompt chips (tanpa emoji)
   function renderQuickReplies() {
+    if (!quickRepliesEl) return;
     quickRepliesEl.innerHTML = '';
     const lang = currentLang === 'en' ? 'en' : 'id';
     const list = QUICK_REPLIES[lang] || QUICK_REPLIES.id;
     if (!list || !list.length) return;
 
-    const track = document.createElement('div');
-    track.className = 'qr-track';
+    list.forEach(item => {
+      const label = typeof item === 'object' ? item.label : item;
+      const query = typeof item === 'object' ? item.text : item;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'gemini-prompt-chip';
+      btn.textContent = label;
+      btn.onclick = () => {
+        sendMessage(query);
+      };
+      quickRepliesEl.appendChild(btn);
+    });
+  }
 
-    // Buat 2 set tombol agar animasi loop -50% -> 0% berjalan mulus tanpa celah
-    for (let set = 0; set < 2; set++) {
-      list.forEach(text => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'qr-btn';
-        btn.textContent = text;
-        if (set === 1) {
-          btn.setAttribute('aria-hidden', 'true');
-          btn.tabIndex = -1;
-        }
-        btn.onclick = () => {
-          quickRepliesEl.innerHTML = '';
-          sendMessage(text);
-        };
-        track.appendChild(btn);
-      });
-    }
+  // Helper untuk membuat elemen form konsultasi interaktif di dalam chat
+  function createConsultationFormCard(defaultTopic = '', defaultMsg = '') {
+    const card = document.createElement('div');
+    card.className = 'chat-consultation-form-card';
 
-    quickRepliesEl.appendChild(track);
+    const isEn = currentLang === 'en';
+    const title = isEn ? 'Consultation & Direct Inquiry Form' : 'Formulir Konsultasi & Tanya Langsung';
+    const badge = isEn ? 'Sends to WhatsApp / Email' : 'Terkirim ke WhatsApp / Email';
+    const nameLabel = isEn ? 'Full Name' : 'Nama Lengkap';
+    const contactLabel = isEn ? 'Your Contact (WhatsApp / Email)' : 'Kontak Anda (WhatsApp / Email)';
+    const topicLabel = isEn ? 'Topic / Service Needed' : 'Topik Kebutuhan';
+    const msgLabel = isEn ? 'Message / Project Details' : 'Pesan / Detail Kebutuhan';
+    const btnWaText = isEn ? 'Send to WhatsApp' : 'Kirim ke WhatsApp';
+    const btnEmailText = isEn ? 'Send to Email' : 'Kirim ke Email';
+
+    card.innerHTML = `
+      <div class="cf-header">
+        <div class="cf-title-row">
+          <svg class="cf-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          </svg>
+          <h5>${title}</h5>
+        </div>
+        <span class="cf-badge">${badge}</span>
+      </div>
+      <div class="cf-body">
+        <div class="cf-field">
+          <label>${nameLabel} <span class="cf-req">*</span></label>
+          <input type="text" class="cf-input cf-input-name" placeholder="${isEn ? 'Your name' : 'Nama lengkap Anda'}" required>
+        </div>
+        <div class="cf-field">
+          <label>${contactLabel} <span class="cf-req">*</span></label>
+          <input type="text" class="cf-input cf-input-contact" placeholder="${isEn ? 'e.g. +628... or email@domain.com' : 'Nomor WA atau email Anda'}" required>
+        </div>
+        <div class="cf-field">
+          <label>${topicLabel}</label>
+          <select class="cf-input cf-input-topic">
+            <option value="Pembuatan Website Modern">${isEn ? 'Modern Website Development' : 'Pembuatan Website Modern'}</option>
+            <option value="Integrasi AI & LLM">${isEn ? 'AI & LLM Integration' : 'Integrasi AI & Large Language Model'}</option>
+            <option value="Konsultasi Proyek & Kerjasama">${isEn ? 'Project Consultation & Collaboration' : 'Konsultasi Proyek & Kerjasama'}</option>
+            <option value="Pertanyaan Umum">${isEn ? 'General Question' : 'Pertanyaan Umum Lainnya'}</option>
+          </select>
+        </div>
+        <div class="cf-field">
+          <label>${msgLabel} <span class="cf-req">*</span></label>
+          <textarea class="cf-input cf-textarea cf-input-msg" rows="3" placeholder="${isEn ? 'Describe your project or questions...' : 'Ceritakan ide, pertanyaan, atau kebutuhan project Anda...'}" required></textarea>
+        </div>
+        <div class="cf-actions">
+          <button type="button" class="cf-btn cf-btn-wa">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.99c-.002 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            <span>${btnWaText}</span>
+          </button>
+          <button type="button" class="cf-btn cf-btn-email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>
+            </svg>
+            <span>${btnEmailText}</span>
+          </button>
+        </div>
+        <div class="cf-status" style="display:none;"></div>
+      </div>
+    `;
+
+    const nameInput = card.querySelector('.cf-input-name');
+    const contactInput = card.querySelector('.cf-input-contact');
+    const topicSelect = card.querySelector('.cf-input-topic');
+    const msgInput = card.querySelector('.cf-input-msg');
+    const btnWa = card.querySelector('.cf-btn-wa');
+    const btnEmail = card.querySelector('.cf-btn-email');
+    const statusBox = card.querySelector('.cf-status');
+
+    if (defaultMsg) msgInput.value = defaultMsg;
+    if (defaultTopic) topicSelect.value = defaultTopic;
+
+    const validate = () => {
+      const name = nameInput.value.trim();
+      const contact = contactInput.value.trim();
+      const msg = msgInput.value.trim();
+
+      let valid = true;
+      if (!name) { nameInput.style.borderColor = '#ef4444'; valid = false; } else { nameInput.style.borderColor = ''; }
+      if (!contact) { contactInput.style.borderColor = '#ef4444'; valid = false; } else { contactInput.style.borderColor = ''; }
+      if (!msg) { msgInput.style.borderColor = '#ef4444'; valid = false; } else { msgInput.style.borderColor = ''; }
+
+      if (!valid) {
+        statusBox.className = 'cf-status error';
+        statusBox.textContent = isEn ? 'Please fill in all required fields marked with *' : 'Mohon lengkapi seluruh kolom yang bertanda *';
+        statusBox.style.display = 'block';
+      }
+      return valid;
+    };
+
+    // Handler Kirim ke WhatsApp
+    btnWa.addEventListener('click', () => {
+      if (!validate()) return;
+      const name = nameInput.value.trim();
+      const contact = contactInput.value.trim();
+      const topic = topicSelect.value;
+      const msg = msgInput.value.trim();
+
+      const text = isEn
+        ? `Hello Dhaifan, I would like to consult via your portfolio AI form:
+
+*Name:* ${name}
+*Contact:* ${contact}
+*Topic:* ${topic}
+
+*Message / Questions:*
+${msg}`
+        : `Halo Dhaifan, saya ingin konsultasi dari formulir AI website portofolio Anda:
+
+*Nama:* ${name}
+*Kontak:* ${contact}
+*Topik:* ${topic}
+
+*Pesan / Pertanyaan:*
+${msg}`;
+
+      const waUrl = `https://wa.me/6285862152118?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, '_blank');
+
+      statusBox.className = 'cf-status success';
+      statusBox.textContent = isEn ? 'Redirecting to WhatsApp to send message to Dhaifan...' : 'Pesan berhasil disiapkan dan dialihkan ke WhatsApp Dhaifan.';
+      statusBox.style.display = 'block';
+    });
+
+    // Handler Kirim ke Email
+    btnEmail.addEventListener('click', () => {
+      if (!validate()) return;
+      const name = nameInput.value.trim();
+      const contact = contactInput.value.trim();
+      const topic = topicSelect.value;
+      const msg = msgInput.value.trim();
+
+      const subject = isEn ? `[Portfolio Consultation] ${topic} - ${name}` : `[Konsultasi Portofolio] ${topic} - ${name}`;
+      const body = isEn
+        ? `Hello Dhaifan,
+
+Here is an inquiry submitted from your portfolio website:
+
+Name: ${name}
+Contact: ${contact}
+Topic: ${topic}
+
+Message / Questions:
+${msg}`
+        : `Halo Dhaifan,
+
+Berikut pesan konsultasi dari formulir website portofolio Anda:
+
+Nama: ${name}
+Kontak: ${contact}
+Topik: ${topic}
+
+Pesan / Pertanyaan:
+${msg}`;
+
+      const mailtoUrl = `mailto:dhavinal20@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailtoUrl;
+
+      statusBox.className = 'cf-status success';
+      statusBox.textContent = isEn ? 'Email client opened to send to dhavinal20@gmail.com' : 'Aplikasi email telah dibuka untuk mengirimkan pesan ke dhavinal20@gmail.com';
+      statusBox.style.display = 'block';
+    });
+
+    return card;
   }
 
   // Tambah pesan ke UI
   function appendMessage(role, text) {
+    if (!chatMessages) return;
     const wrapper = document.createElement('div');
     wrapper.className = `chat-msg ${role === 'user' ? 'user' : ''}`;
 
@@ -1077,19 +1355,33 @@ Catatan penting soal harga:
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
 
+    // Cek apakah pesan menyertakan tag khusus untuk form konsultasi
+    let showForm = false;
+    if (text.includes('[SHOW_CONSULTATION_FORM]')) {
+      showForm = true;
+      text = text.replace(/\[SHOW_CONSULTATION_FORM\]/g, '').trim();
+    }
+
     // Format markdown: headers, bold, italics, lists, linebreaks
     let html = text
-      .replace(/^### (.*$)/gim, '<strong style="display:block;margin-top:6px;font-size:14px;color:var(--orange-deep);">$1</strong>')
-      .replace(/^## (.*$)/gim, '<strong style="display:block;margin-top:8px;font-size:14.5px;color:var(--ink);">$1</strong>')
+      .replace(/^### (.*$)/gim, '<strong class="chat-md-h3">$1</strong>')
+      .replace(/^## (.*$)/gim, '<strong class="chat-md-h2">$1</strong>')
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/^[•\-\*]\s+(.*)$/gim, '• $1')
+      .replace(/^[•\-\*]\s+(.*)$/gim, '<span class="chat-bullet">•</span> $1')
       .replace(/\n/g, '<br>');
 
     bubble.innerHTML = html;
 
     wrapper.appendChild(avatar);
     wrapper.appendChild(bubble);
+
+    // Jika bot meminta tampilkan form konsultasi, sisipkan form card di dalam percakapan
+    if (showForm) {
+      const formCard = createConsultationFormCard();
+      bubble.appendChild(formCard);
+    }
+
     chatMessages.appendChild(wrapper);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     return wrapper;
@@ -1097,6 +1389,7 @@ Catatan penting soal harga:
 
   // Tampilkan typing indicator
   function showTyping() {
+    if (!chatMessages) return;
     const wrapper = document.createElement('div');
     wrapper.className = 'chat-msg';
     wrapper.id = 'typingIndicator';
@@ -1119,14 +1412,17 @@ Catatan penting soal harga:
 
   // Kirim pesan ke /api/chat (Vercel Edge Function — key tersembunyi)
   async function sendMessage(text) {
-    if (!text.trim() || chatIsTyping) return;
+    if (!text || !text.trim() || chatIsTyping) return;
     chatIsTyping = true;
-    chatSend.disabled = true;
-    chatInput.value = '';
+    if (chatSend) chatSend.disabled = true;
+    if (chatInput) chatInput.value = '';
 
     appendMessage('user', text);
     chatHistory.push({ role: 'user', parts: [{ text }] });
     showTyping();
+
+    // Deteksi jika pengguna menanyakan form / konsultasi / kontak secara langsung
+    const isConsultationIntent = /form|formulir|konsultasi|hubungi langsung|kontak dhaifan|kirim pesan/i.test(text);
 
     try {
       const response = await fetch(CHAT_API_URL, {
@@ -1145,7 +1441,12 @@ Catatan penting soal harga:
       }
 
       const data = await response.json();
-      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Maaf, saya tidak mengerti. Coba ulangi ya! 😊';
+      let reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || (currentLang === 'en' ? 'Maaf, saya tidak mengerti. Silakan ulangi pertanyaan Anda.' : 'Maaf, saya tidak mengerti. Silakan ulangi pertanyaan Anda.');
+
+      // Jika intent adalah konsultasi tapi model lupa menyertakan tag, otomatis tambahkan tag
+      if (isConsultationIntent && !reply.includes('[SHOW_CONSULTATION_FORM]')) {
+        reply += '\n\n[SHOW_CONSULTATION_FORM]';
+      }
 
       chatHistory.push({ role: 'model', parts: [{ text: reply }] });
       if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
@@ -1154,21 +1455,49 @@ Catatan penting soal harga:
       appendMessage('bot', reply);
     } catch (err) {
       hideTyping();
-      appendMessage('bot', '⚠️ Gagal terhubung ke AI. ' + err.message);
+      // Jika terjadi error koneksi ke AI, tetap berikan fallback form agar pengunjung tetap bisa menghubungi Dhaifan!
+      const fallbackMsg = 'Koneksi ke AI asisten sedang sibuk. Namun Anda dapat langsung mengisi formulir konsultasi di bawah ini untuk terhubung ke WhatsApp atau Email Dhaifan:\n\n[SHOW_CONSULTATION_FORM]';
+
+      appendMessage('bot', fallbackMsg);
     } finally {
       chatIsTyping = false;
-      chatSend.disabled = false;
-      chatInput.focus();
+      if (chatSend && chatInput) chatSend.disabled = !chatInput.value.trim();
+      if (chatInput) chatInput.focus();
     }
   }
 
-  // Event: tombol FAB
-  chatFab.addEventListener('click', toggleChat);
-  chatCloseBtn.addEventListener('click', toggleChat);
+  // Event: Kirim pesan
+  if (chatSend && chatInput) {
+    chatSend.disabled = !chatInput.value.trim();
+    chatSend.addEventListener('click', () => sendMessage(chatInput.value));
+    chatInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(chatInput.value);
+      }
+    });
+    chatInput.addEventListener('input', () => {
+      if (!chatIsTyping) {
+        chatSend.disabled = !chatInput.value.trim();
+      }
+    });
+  }
 
-  // Event: kirim pesan
-  chatSend.addEventListener('click', () => sendMessage(chatInput.value));
-  chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput.value); } });
+  // Event: Reset / New Chat
+  if (chatResetBtn) {
+    chatResetBtn.addEventListener('click', () => {
+      chatHistory = [];
+      if (chatMessages) chatMessages.innerHTML = '';
+      addGreeting();
+      renderQuickReplies();
+      if (chatInput) {
+        chatInput.value = '';
+        chatInput.focus();
+      }
+      if (chatSend) chatSend.disabled = true;
+    });
+  }
 
-  // Tampilkan badge notif saat panel tertutup
-  setTimeout(() => { if (!chatIsOpen) chatBadge.classList.add('show'); }, 3000);
+  // Inisialisasi awal chatbot langsung aktif di halaman
+  addGreeting();
+  renderQuickReplies();
