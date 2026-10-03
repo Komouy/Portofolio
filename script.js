@@ -190,7 +190,13 @@
     els.forEach(el => el.classList.add('i18n-changing'));
 
     setTimeout(() => {
-      els.forEach(el => {
+      // Query ULANG di dalam timeout (bukan pakai daftar `els` di atas):
+      // marquee menduplikasi kartu project/skill tepat setelah snapshot, jadi
+      // salinan itu ikut mewarisi class "i18n-changing" (opacity:0). Karena
+      // mereka tidak ada di `els`, teksnya tidak pernah diterjemahkan dan
+      // class-nya tidak pernah dilepas -> deskripsi project hilang permanen.
+      const elsNow = document.querySelectorAll('[data-i18n], [data-i18n-ph]');
+      elsNow.forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (key && translations[lang][key]) {
           if (el.id === 'heroTitle' && typeof typewriterReveal === 'function') {
@@ -312,6 +318,16 @@
         clone.classList.add('px-clone');
         clone.setAttribute('aria-hidden', 'true');
         clone.style.removeProperty('transition-delay');
+        // Kelas transisi i18n tidak boleh ikut tersalin: kalau nyangkut, kartu
+        // duplikat berhenti di opacity:0 → deskripsi project tidak terlihat.
+        // Sekalian samakan bahasanya dengan bahasa yang sedang aktif.
+        clone.querySelectorAll('[data-i18n], [data-i18n-ph]').forEach(el => {
+          el.classList.remove('i18n-changing');
+          const key = el.getAttribute('data-i18n');
+          if (key && translations[currentLang] && translations[currentLang][key]) el.innerHTML = translations[currentLang][key];
+          const phKey = el.getAttribute('data-i18n-ph');
+          if (phKey && translations[currentLang] && translations[currentLang][phKey]) el.setAttribute('placeholder', translations[currentLang][phKey]);
+        });
         uniquifyIds(clone, '-m' + (++seq));
         // duplikat cuma visual: jangan jadi stop tab keyboard
         clone.querySelectorAll('a, button, input, [tabindex]').forEach(el => el.setAttribute('tabindex', '-1'));
