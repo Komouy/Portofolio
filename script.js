@@ -33,8 +33,9 @@
       proj_title: "Beberapa karya yang saya bangun.",
       proj1_desc: `<strong>PropAcademyForex.com</strong> adalah platform prop trading yang saya kembangkan dengan Dashboard Trader dan Dashboard Affiliate untuk memantau performa akun, referral, serta komisi secara real-time.`,
       proj2_desc: `<strong>Informatika - UIN Saizu</strong> adalah platform informasi mahasiswa Informatika UIN Saizu yang mengelola pengumuman, jadwal, deadline, lomba, informasi dosen, dan berbagai informasi kelas secara terstruktur.`,
-      proj3_desc: `<strong>Arunika AI</strong> adalah aplikasi desktop berbasis AI yang memungkinkan pengguna berinteraksi dengan Large Language Models (LLM) secara langsung untuk membantu berbagai kebutuhan produktivitas melalui antarmuka yang sederhana dan modern.`,
-      proj4_desc: `<strong>KlyroCLI</strong> adalah CLI berbasis AI yang membantu developer menulis, memahami, dan mengelola kode langsung melalui terminal dengan memanfaatkan Large Language Models (LLM) dan sistem routing model untuk memilih model yang sesuai dengan kebutuhan.`,
+      proj3_desc: `<strong>SMK Ma'arif 1 Kembaran</strong> adalah website profil sekolah dan portal PPDB Online serta Bursa Kerja Khusus (BKK) yang dirancang modern, responsif, dan memudahkan akses informasi bagi calon siswa serta alumni.`,
+      proj4_desc: `<strong>Arunika AI</strong> adalah aplikasi desktop berbasis AI yang memungkinkan pengguna berinteraksi dengan Large Language Models (LLM) secara langsung untuk membantu berbagai kebutuhan produktivitas melalui antarmuka yang sederhana dan modern.`,
+      proj5_desc: `<strong>KlyroCLI</strong> adalah CLI berbasis AI yang membantu developer menulis, memahami, dan mengelola kode langsung melalui terminal dengan memanfaatkan Large Language Models (LLM) dan sistem routing model untuk memilih model yang sesuai dengan kebutuhan.`,
       exp_eyebrow: "My Journey",
       exp_title: "Perjalanan Saya",
       exp_sub: "Perjalanan belajar dan berkembang di dunia teknologi — dari dasar pemrograman hingga AI.",
@@ -96,8 +97,9 @@
       proj_title: "Some of the works I've built.",
       proj1_desc: `<strong>PropAcademyForex.com</strong> is a prop trading platform I developed with Trader and Affiliate Dashboards to monitor account performance, referrals, and real-time commissions.`,
       proj2_desc: `<strong>Informatika - UIN Saizu</strong> is a student information platform for the Informatics department at UIN Saizu, managing announcements, schedules, deadlines, competitions, lecturer info, and class information in one structured place.`,
-      proj3_desc: `<strong>Arunika AI</strong> is an AI-powered desktop application enabling users to interact directly with Large Language Models (LLM) for various productivity needs through a simple, modern interface.`,
-      proj4_desc: `<strong>KlyroCLI</strong> is an AI-powered CLI that helps developers write, understand, and manage code right from the terminal using Large Language Models (LLM) and a model-routing system that picks the right model for each task.`,
+      proj3_desc: `<strong>SMK Ma'arif 1 Kembaran</strong> is the official school website and online PPDB & BKK portal for SMK Ma'arif NU 1 Kembaran, designed to be modern, responsive, and provide seamless access to school profiles, majors, and new student admissions.`,
+      proj4_desc: `<strong>Arunika AI</strong> is an AI-powered desktop application enabling users to interact directly with Large Language Models (LLM) for various productivity needs through a simple, modern interface.`,
+      proj5_desc: `<strong>KlyroCLI</strong> is an AI-powered CLI that helps developers write, understand, and manage code right from the terminal using Large Language Models (LLM) and a model-routing system that picks the right model for each task.`,
       exp_eyebrow: "My Journey",
       exp_title: "My Journey",
       exp_sub: "Learning and growing journey in technology — from programming fundamentals to AI.",
@@ -321,68 +323,53 @@
     });
   })();
 
-  // ---------- PIXEL STARFIELD (background hero, gaya kotak-kotak bukan glow soft) ----------
-  (function initPxStarfield() {
-    const canvas = document.getElementById('pxStarfield');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const DPR = Math.min(window.devicePixelRatio || 1, 2);
-    const heroEl = canvas.closest('.hero');
-    let stars = [];
-    let w = 0, h = 0, running = true;
+  // ---------- HERO INTERACTIVE GRID UX (mouse-following spotlight & tactile response) ----------
+  (function initHeroGridUX() {
+    const hero = document.getElementById('home');
+    const grid = document.getElementById('heroGrid');
+    if (!hero || !grid) return;
 
-    function resize() {
-      const rect = heroEl.getBoundingClientRect();
-      w = rect.width; h = rect.height;
-      canvas.width = Math.floor(w * DPR);
-      canvas.height = Math.floor(h * DPR);
-      canvas.style.width = w + 'px';
-      canvas.style.height = h + 'px';
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      // kepadatan bintang mengikuti luas area, dibatasi biar tetap ringan
-      const count = Math.min(70, Math.floor((w * h) / 9000));
-      stars = Array.from({ length: count }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        size: [2, 2, 3, 4][Math.floor(Math.random() * 4)], // ukuran pixel-snap, bukan float sembarang
-        speed: Math.random() * 14 + 4, // px per detik, jatuh perlahan ke bawah
-        blinkOffset: Math.random() * Math.PI * 2,
-        blinkSpeed: Math.random() * 1.2 + 0.5,
-        color: Math.random() > 0.75 ? '249,115,22' : '255,255,255'
-      }));
-    }
+    let targetX = 50;
+    let targetY = 35;
+    let currentX = 50;
+    let currentY = 35;
+    let isTracking = false;
 
-    let lastT = performance.now();
-    function tick(now) {
-      if (!running) { requestAnimationFrame(tick); return; }
-      if (document.hidden) { lastT = now; requestAnimationFrame(tick); return; }
-      const dt = Math.min((now - lastT) / 1000, 0.05);
-      lastT = now;
-      ctx.clearRect(0, 0, w, h);
-      for (const s of stars) {
-        s.y += s.speed * dt;
-        if (s.y > h + 4) { s.y = -4; s.x = Math.random() * w; }
-        const blink = 0.4 + 0.6 * Math.abs(Math.sin(now / 1000 * s.blinkSpeed + s.blinkOffset));
-        ctx.fillStyle = `rgba(${s.color},${blink})`;
-        // snap ke grid pixel supaya konsisten dengan estetika pixel-art (bukan sub-pixel blur)
-        ctx.fillRect(Math.round(s.x), Math.round(s.y), s.size, s.size);
+    function render() {
+      currentX += (targetX - currentX) * 0.12;
+      currentY += (targetY - currentY) * 0.12;
+
+      grid.style.setProperty('--mouse-x', currentX.toFixed(2) + '%');
+      grid.style.setProperty('--mouse-y', currentY.toFixed(2) + '%');
+
+      if (Math.abs(targetX - currentX) > 0.05 || Math.abs(targetY - currentY) > 0.05) {
+        requestAnimationFrame(render);
+      } else {
+        isTracking = false;
       }
-      requestAnimationFrame(tick);
     }
 
-    resize();
-    window.addEventListener('resize', resize, { passive: true });
-    document.addEventListener('visibilitychange', () => { running = !document.hidden; });
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      // tetap gambar starfield statis satu kali, tapi tanpa animasi jatuh/berkedip
-      ctx.clearRect(0, 0, w, h);
-      for (const s of stars) {
-        ctx.fillStyle = `rgba(${s.color},0.8)`;
-        ctx.fillRect(Math.round(s.x), Math.round(s.y), s.size, s.size);
+    function requestRender() {
+      if (!isTracking) {
+        isTracking = true;
+        requestAnimationFrame(render);
       }
-    } else {
-      requestAnimationFrame(tick);
     }
+
+    hero.addEventListener('mousemove', (e) => {
+      const rect = hero.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        targetX = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+        targetY = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+        requestRender();
+      }
+    }, { passive: true });
+
+    hero.addEventListener('mouseleave', () => {
+      targetX = 50;
+      targetY = 35;
+      requestRender();
+    });
   })();
 
   // ---------- TYPEWRITER JUDUL HERO (ala terminal, aman untuk tag <em> di dalamnya) ----------
@@ -926,9 +913,12 @@ Tugasmu adalah menjawab pertanyaan pengunjung portofolio Dhaifan dengan ramah, i
 3. 2026–sekarang: Belajar LLM Engineering & AI Integration secara mandiri (self-directed learning)
 
 ## PROJECT UNGGULAN
-1. PropFirmAcademyForex.com — Platform prop trading dengan Trader & Affiliate Dashboard real-time. Stack: React, Laravel, Python, Firebase, VPS
-2. UtiloBox (kotaktools.my.id) — Koleksi web tools lengkap: QR Code, JSON Formatter, Base64, Image Converter, AI Background Remover. Stack: React, Tailwind, FastAPI, Vite
-3. Arunika AI — Aplikasi desktop AI berbasis LLM (Ollama + Qwen 2.5B) untuk produktivitas pengguna. Stack: Python, FastAPI, Ollama
+1. PropFirmAcademyForex.com — Platform prop trading dengan Trader & Affiliate Dashboard real-time. Stack: React, Laravel, Python, Firebase, VPS. Link: https://www.propacademyforex.com/
+2. Informatika - UIN Saizu — Platform informasi mahasiswa Informatika UIN Saizu (jadwal, deadline, lomba, info dosen). Stack: TypeScript, Firebase, Gemini API, Groq API, Baileys. Link: https://s1-infa.vercel.app/
+3. SMK Ma'arif 1 Kembaran — Website profil sekolah resmi dan portal PPDB Online serta Bursa Kerja Khusus (BKK) SMK Ma'arif NU 1 Kembaran. Stack: PHP, MySQL, JavaScript, CSS3. Link: https://smkmaarif1kembaran.sch.id/ | GitHub: https://github.com/Komouy/smk-maarif
+4. Arunika AI — Aplikasi desktop AI berbasis LLM (Ollama + Qwen 2.5B) untuk produktivitas pengguna. Stack: Python, FastAPI, Ollama
+5. KlyroCLI — CLI berbasis AI untuk coding assistance & model routing langsung dari terminal. Stack: Python, FastAPI, Ollama, Qwen 2.5B. GitHub: https://github.com/Komouy/KlyroCLI
+6. UtiloBox (kotaktools.my.id) — Koleksi web tools: QR Code, JSON Formatter, Base64, Image Converter, AI Background Remover. Stack: React, Tailwind, FastAPI, Vite
 
 ## LAYANAN YANG DITAWARKAN
 - Pembuatan website modern & responsif
@@ -1041,20 +1031,36 @@ Catatan penting soal harga:
     appendMessage('bot', greet);
   }
 
-  // Render quick reply pills
+  // Render quick reply pills (marquee: bergerak ke kanan, muncul lagi dari kiri)
   function renderQuickReplies() {
     quickRepliesEl.innerHTML = '';
     const lang = currentLang === 'en' ? 'en' : 'id';
-    QUICK_REPLIES[lang].forEach(text => {
-      const btn = document.createElement('button');
-      btn.className = 'qr-btn';
-      btn.textContent = text;
-      btn.onclick = () => {
-        quickRepliesEl.innerHTML = '';
-        sendMessage(text);
-      };
-      quickRepliesEl.appendChild(btn);
-    });
+    const list = QUICK_REPLIES[lang] || QUICK_REPLIES.id;
+    if (!list || !list.length) return;
+
+    const track = document.createElement('div');
+    track.className = 'qr-track';
+
+    // Buat 2 set tombol agar animasi loop -50% -> 0% berjalan mulus tanpa celah
+    for (let set = 0; set < 2; set++) {
+      list.forEach(text => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'qr-btn';
+        btn.textContent = text;
+        if (set === 1) {
+          btn.setAttribute('aria-hidden', 'true');
+          btn.tabIndex = -1;
+        }
+        btn.onclick = () => {
+          quickRepliesEl.innerHTML = '';
+          sendMessage(text);
+        };
+        track.appendChild(btn);
+      });
+    }
+
+    quickRepliesEl.appendChild(track);
   }
 
   // Tambah pesan ke UI
