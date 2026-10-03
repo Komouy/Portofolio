@@ -659,11 +659,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
   grid-template-columns: 0.95fr 1.25fr !important;
   gap: clamp(28px, 3.8vw, 48px) !important;
   align-items: start !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 @media (max-width: 960px) {
   .contact-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 32px !important;
   }
 }
@@ -672,6 +675,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Chat Embed Card (ChatGPT / Gemini Workspace Canvas) */
@@ -687,6 +692,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
   overflow: hidden;
   position: relative;
   transition: border-color 0.3s ease, background 0.3s ease;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 [data-theme="dark"] .chat-embed-card {
@@ -1166,22 +1175,233 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
   .chat-embed-card {
     height: 520px;
     border-radius: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
   .chat-embed-header {
-    padding: 12px 14px;
+    padding: 12px 12px;
+    min-width: 0;
+    box-sizing: border-box;
   }
   .chat-embed-messages {
-    padding: 14px 14px 10px;
+    padding: 12px 12px 8px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
   }
   .chat-gemini-prompts {
-    padding: 6px 14px 8px;
+    padding: 6px 12px 8px;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   .chat-gemini-input-container {
-    padding: 6px 14px 12px;
+    padding: 6px 12px 12px;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .chat-prompt-pill {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    padding: 4px 5px 4px 12px !important;
+  }
+  .chat-prompt-input {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 14px !important;
+  }
+  .msg-bubble {
+    max-width: calc(100% - 44px) !important;
+    min-width: 0 !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    font-size: 13px !important;
+  }
+  .chat-msg {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .chat-consultation-form-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px 12px !important;
   }
   .back-to-top {
-    right: 18px !important;
-    bottom: 18px !important;
+    right: 14px !important;
+    bottom: 14px !important;
+  }
+}
+
+/* =========================================================
+   MOBILE CONTACT SECTION & CHATBOT — ANTI OVERFLOW FIX
+   Mencegah horizontal scroll/clipping di layar <=600px.
+   ========================================================= */
+@media (max-width: 640px) {
+  /* Root overflow guard untuk mobile browser (Safari/Chrome scroll root = html) */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Container tidak boleh memiliki padding yang mendorong konten keluar layar */
+  .container {
+    padding-left: clamp(14px, 4vw, 20px) !important;
+    padding-right: clamp(14px, 4vw, 20px) !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* contact-wrap: kurangi shadow hard (8px mendorong kanan) + paksa masuk layar */
+  .contact-wrap {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    padding: 22px 16px !important;
+    box-shadow: 3px 3px 0 rgba(0,0,0,.45) !important;
+  }
+
+  /* Heading pixel font monospace: bisa sangat lebar, wajib word-break */
+  .contact-copy h2 {
+    font-size: clamp(15px, 5vw, 24px) !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    line-height: 1.5 !important;
+    hyphens: auto !important;
+  }
+  .contact-copy p {
+    overflow-wrap: break-word !important;
+    max-width: 100% !important;
+    font-size: 14px !important;
+  }
+
+  /* Grid kontak: satu kolom, min-width:0 mencegah blowout */
+  .contact-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .contact-right-panel {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Link kontak: cegah teks meluber */
+  .clink {
+    font-size: 13px !important;
+    padding: 10px 12px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    word-break: break-all !important;
+  }
+
+  /* Chat embed card: full width tanpa blowout */
+  .chat-embed-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    height: 500px !important;
+    border-radius: 16px !important;
+  }
+  .chat-embed-header {
+    padding: 10px 12px !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  /* Nama AI di header jangan terpotong */
+  .chat-ai-name-row h4 {
+    font-size: 13px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+  .chat-reset-btn span {
+    display: none; /* sembunyikan teks "Reset Chat", cukup icon */
+  }
+  .chat-reset-btn {
+    padding: 6px 8px !important;
+  }
+  .chat-embed-messages {
+    padding: 12px 10px 8px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .chat-msg {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: 8px;
+  }
+  .msg-bubble {
+    max-width: calc(100% - 40px) !important;
+    min-width: 0 !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    font-size: 12.5px !important;
+    padding: 10px 12px !important;
+    line-height: 1.55 !important;
+  }
+  .chat-gemini-prompts {
+    padding: 5px 10px 7px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .gemini-prompt-chip {
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+  }
+  .chat-gemini-input-container {
+    padding: 6px 10px 10px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .chat-prompt-pill {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    padding: 4px 5px 4px 12px !important;
+  }
+  .chat-prompt-input {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 14px !important; /* >=14px cegah iOS auto-zoom */
+  }
+  .chat-send-btn {
+    flex-shrink: 0 !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+  /* Consultation form card dalam chat */
+  .chat-consultation-form-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px 10px !important;
+  }
+  .cf-actions {
+    grid-template-columns: 1fr !important;
+  }
+  .cf-btn {
+    font-size: 12px !important;
+    padding: 8px 10px !important;
+  }
+  /* Back-to-top: jauhkan dari tepi layar */
+  .back-to-top {
+    right: 14px !important;
+    bottom: 14px !important;
   }
 }
 
@@ -1192,7 +1412,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
    ========================================================================== */
 .chat-consultation-form-card {
   width: 100%;
-  max-width: 520px;
+  max-width: 100%;
+  box-sizing: border-box;
   background: #ffffff;
   border: 1.5px solid #ded8ce;
   border-radius: 18px !important;
