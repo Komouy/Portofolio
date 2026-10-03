@@ -352,49 +352,96 @@
         vio.observe(sec);
       }
 
-      // ===== SWIPE / DRAG MANUAL untuk mobile & desktop =====
-      let _dragStartX = 0, _dragOffset = 0, _isDragging = false;
-      let _velX = 0, _lastX = 0, _lastT = 0, _momRAF = null;
+      // ===== SWIPE / DRAG MANUAL (Pointer Events: mouse, touch, stylus) =====
+      // PENTING: track ini punya CSS animation pada `transform` (pxMarqueeLoop),
+      // dan deklarasi animation MENANG atas inline style. Jadi selama animasi
+      // masih terpasang, `grid.style.transform` diabaikan total → kartu tidak
+      // bisa digeser. Karena itu saat drag dimulai animasinya dimatikan dulu
+      // (animation:none), lalu saat drag selesai posisinya disambung kembali ke
+      // animasi lewat `animation-delay` negatif → mulus, tanpa lompat.
+      let _dragging = false, _moved = false, _startX = 0, _baseX = 0;
+      let _lastX = 0, _lastT = 0, _velX = 0, _momRAF = null, _resumeTO = null, _ended = true;
 
-      const _getX = () => { const m = new DOMMatrix(window.getComputedStyle(grid).transform); return m.m41; };
-      const _pauseAnim = () => { grid.style.animationPlayState = 'paused'; };
-      const _resumeAnim = () => { grid.style.transform = ''; grid.style.animationPlayState = ''; };
+      const _trackW = () => (grid.scrollWidth || 0) / 2 || 1;   // lebar 1 set kartu
+      const _readX = () => {
+        const t = getComputedStyle(grid).transform;
+        if (!t || t === 'none') return 0;
+        try { return (window.DOMMatrixReadOnly ? new DOMMatrixReadOnly(t) : new DOMMatrix(t)).m41; } catch (e) { return 0; }
+      };
+      const _wrapX = (x) => { const w = _trackW(); x %= w; if (x > 0) x -= w; return x; };
+      const _setX = (x) => { grid.style.transform = `translateX(${x}px)`; };
 
-      const _onStart = (cx) => {
+      const _onStart = (e) => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;   // klik kanan jangan menyeret
         if (_momRAF) { cancelAnimationFrame(_momRAF); _momRAF = null; }
-        _isDragging = true; _dragStartX = cx; _dragOffset = _getX();
-        _lastX = cx; _lastT = Date.now(); _velX = 0;
-        _pauseAnim(); grid.style.transform = `translateX(${_dragOffset}px)`;
+        if (_resumeTO) { clearTimeout(_resumeTO); _resumeTO = null; }
+        _ended = false;
+        _dragging = true; _moved = false;
+        _startX = _lastX = e.clientX; _lastT = performance.now(); _velX = 0;
+        _baseX = _readX();          // baca posisi animasi DULU, baru lepas kontrolnya
+        grid.style.animation = 'none';
+        _setX(_baseX);
         grid.style.cursor = 'grabbing';
-      };
-      const _onMove = (cx) => {
-        if (!_isDragging) return;
-        const now = Date.now(), dt = now - _lastT || 16;
-        _velX = (cx - _lastX) / dt * 16; _lastX = cx; _lastT = now;
-        grid.style.transform = `translateX(${_dragOffset + cx - _dragStartX}px)`;
-      };
-      const _onEnd = () => {
-        if (!_isDragging) return;
-        _isDragging = false; grid.style.cursor = '';
-        const halfW = grid.scrollWidth / 2;
-        let cur = parseFloat((grid.style.transform.match(/-?[\d.]+/) || ['0'])[0]);
-        const go = () => {
-          _velX *= 0.88; cur += _velX;
-          if (cur > 0) cur -= halfW; if (cur < -halfW) cur += halfW;
-          grid.style.transform = `translateX(${cur}px)`;
-          if (Math.abs(_velX) > 0.5) { _momRAF = requestAnimationFrame(go); }
-          else { _resumeAnim(); }
-        };
-        _momRAF = requestAnimationFrame(go);
+        try { grid.setPointerCapture(e.pointerId); } catch (err) {}
       };
 
-      grid.addEventListener('touchstart', e => _onStart(e.touches[0].clientX), { passive: true });
-      grid.addEventListener('touchmove',  e => _onMove(e.touches[0].clientX),  { passive: true });
-      grid.addEventListener('touchend',   () => _onEnd());
-      grid.addEventListener('pointerdown', e => { grid.setPointerCapture(e.pointerId); _onStart(e.clientX); });
-      grid.addEventListener('pointermove', e => { if (e.buttons) _onMove(e.clientX); });
-      grid.addEventListener('pointerup',   () => _onEnd());
-      grid.addEventListener('pointercancel', () => _onEnd());
+      const _onMove = (e) => {
+        if (!_dragging) return;
+        const dx = e.clientX - _startX;
+        if (!_moved && Math.abs(dx) > 4) _moved = true;            // ambang batas "benar-benar geser"
+        const now = performance.now(), dt = Math.max(1, now - _lastT);
+        _velX = (e.clientX - _lastX) / dt * 16.67;                 // px per frame
+        _lastX = e.clientX; _lastT = now;
+        _setX(_wrapX(_baseX + dx));                                // wrap → terasa infinite
+      };
+
+      const _onEnd = () => {
+        if (!_dragging) return;
+        _dragging = false; grid.style.cursor = '';
+        if (_momRAF) { cancelAnimationFrame(_momRAF); _momRAF = null; }
+        const w = _trackW();
+        let x = _readX();
+        // Sambung lagi ke CSS animation tepat di posisi terakhir (idempoten,
+        // sekali saja) supaya track tidak pernah "beku" di animation:none.
+        const _finishDrag = () => {
+          if (_ended) return;
+          _ended = true;
+          if (_resumeTO) { clearTimeout(_resumeTO); _resumeTO = null; }
+          if (_momRAF) { cancelAnimationFrame(_momRAF); _momRAF = null; }
+          const dur = parseFloat(getComputedStyle(grid).getPropertyValue('--marq-dur')) || 32; // detik
+          const p = Math.min(1, Math.max(0, 1 + x / w));            // animasi: -w → 0  ==  progress 0 → 1
+          grid.style.transform = '';
+          grid.style.animation = '';
+          grid.style.animationDelay = (-p * dur) + 's';
+        };
+        // tap / geser pelan → langsung lanjut, tidak perlu momentum
+        if (!_moved || Math.abs(_velX) < 1.5) { _finishDrag(); return; }
+        const _momentum = () => {
+          _velX *= 0.9; x += _velX;
+          if (x > 0) x -= w; else if (x <= -w) x += w;
+          _setX(x);
+          if (Math.abs(_velX) > 0.4) { _momRAF = requestAnimationFrame(_momentum); }
+          else { _momRAF = null; _finishDrag(); }
+        };
+        _momRAF = requestAnimationFrame(_momentum);
+        // pengaman: kalau rAF dibekukan browser (tab background / hemat daya),
+        // animasi tetap disambung supaya track tidak nyangkut "beku".
+        _resumeTO = setTimeout(_finishDrag, 1500);
+      };
+
+      grid.addEventListener('pointerdown', _onStart);
+      grid.addEventListener('pointermove', _onMove);
+      grid.addEventListener('pointerup', _onEnd);
+      grid.addEventListener('pointercancel', _onEnd);
+      grid.addEventListener('lostpointercapture', _onEnd);
+      // matikan "drag bawaan" browser pada gambar (bisa membatalkan gesture kita)
+      grid.addEventListener('dragstart', e => e.preventDefault());
+      // setelah benar-benar digeser, klik ke link (GitHub/Demo) dibatalkan
+      grid.addEventListener('click', e => {
+        if (!_moved) return;
+        _moved = false;
+        e.preventDefault(); e.stopPropagation();
+      }, true);
     });
   })();
 

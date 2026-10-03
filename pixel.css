@@ -362,6 +362,15 @@ footer{border-top:var(--px-border);}
 .skills-grid.px-marquee,.proj-grid.px-marquee{display:flex !important; flex-wrap:nowrap !important; align-items:stretch !important; width:max-content !important; max-width:none !important; grid-template-columns:none !important; gap:0 !important; margin:0 !important; padding:10px 0 22px !important; will-change:transform; animation:pxMarqueeLoop var(--marq-dur,32s) linear infinite;}
 .skills-grid.px-marquee{--marq-dur:30s;}
 .proj-grid.px-marquee{--marq-dur:42s;}
+/* ===== DRAG MANUAL (handler pointer di script.js) =====
+   touch-action:pan-y → gesture horizontal milik kita, scroll vertikal halaman
+   tetap normal (tanpa ini, browser "mencuri" swipe horizontal dan membatalkan
+   pointer events kita). user-select / -webkit-user-drag dimatikan supaya teks
+   dan gambar tidak ikut terseret seperti drag bawaan browser. */
+.px-marquee-clip{touch-action:pan-y;}
+.skills-grid.px-marquee,.proj-grid.px-marquee{touch-action:pan-y; cursor:grab; user-select:none; -webkit-user-select:none;}
+.skills-grid.px-marquee:active,.proj-grid.px-marquee:active{cursor:grabbing;}
+.skills-grid.px-marquee img,.proj-grid.px-marquee img{-webkit-user-drag:none; user-select:none; -webkit-user-select:none;}
 .skills-grid.px-marquee .skill-card{flex:0 0 250px !important; width:250px !important; max-width:250px !important; margin-right:18px !important;}
 .proj-grid.px-marquee .proj-card{flex:0 0 380px !important; width:380px !important; max-width:380px !important; margin-right:28px !important;}
 /* card di dalam track selalu tampil (tidak ikut animasi reveal saat scroll) */
