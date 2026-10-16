@@ -7,6 +7,13 @@
       nav_projects: "Project",
       nav_experience: "Pengalaman",
       nav_contact: "Kontak",
+      nav_arcade: "Arcade",
+      hero_arcade_btn: "Main Game",
+      game_score: "Skor",
+      game_best: "Terbaik",
+      game_level: "Level",
+      game_pause: "Jeda",
+      game_jump_hint: "Lompat / Double Jump",
       nav_cta: "Hubungi Saya",
       hero_eyebrow: "Web Developer & AI Enthusiast",
       hero_title: `Membangun Website Modern & <em class="gradient-text">AI-Powered</em> Digital Solutions.`,
@@ -21,9 +28,10 @@
       hero_chip_2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>Responsif`,
       loader_hint_continue: "KLIK DIMANA SAJA UNTUK MELANJUTKAN",
       about_eyebrow: "Tentang Saya",
-      about_title: "Fokus pada solusi digital yang nyata dampaknya.",
-      about_p1: "Saya Dhaifan, siswa RPL yang membangun solusi digital jauh sebelum lulus. Dari platform prop-trading forex hingga aplikasi desktop dengan AI lokal — saya tidak hanya belajar teknologi, tapi langsung menerapkannya untuk kebutuhan yang nyata.",
-      about_p2: "Pendekatan saya selalu dimulai dari memahami <em>kenapa</em>, bukan sekadar <em>cara</em>. Setiap project dikerjakan dengan arsitektur yang bersih, integrasi yang terencana, dan orientasi pada dampak — bukan hanya tampilan.",
+      about_title: "Membangun solusi digital dari masalah yang nyata.",
+      about_p1: "Saya Dhaifan, mahasiswa Informatika yang memiliki ketertarikan pada pengembangan software, integrasi AI, dan teknologi berbasis LLM. Sebelum dan selama kuliah, saya aktif mengerjakan berbagai project digital, mulai dari website dan sistem informasi hingga aplikasi yang memanfaatkan AI.",
+      about_p2: "Bagi saya, membuat software bukan hanya tentang menulis kode, tetapi tentang memahami masalah dan mencari cara yang tepat untuk menyelesaikannya. Karena itu, setiap project saya bangun dengan mempertimbangkan kebutuhan pengguna, struktur sistem, integrasi teknologi, serta bagaimana solusi tersebut dapat benar-benar digunakan.",
+      about_p3: "Saat ini saya terus mengembangkan kemampuan di bidang software engineering dan AI, sambil membangun berbagai project sebagai ruang untuk belajar, bereksperimen, dan menghasilkan sesuatu yang nyata.",
       stat_1_label: "Project Selesai",
       stat_2_label: "Teknologi Dikuasai",
       stat_3_label: "Tahun Pengalaman",
@@ -78,6 +86,13 @@
       nav_projects: "Projects",
       nav_experience: "Experience",
       nav_contact: "Contact",
+      nav_arcade: "Arcade",
+      hero_arcade_btn: "Play Game",
+      game_score: "Score",
+      game_best: "Best",
+      game_level: "Level",
+      game_pause: "Pause",
+      game_jump_hint: "Jump / Double Jump",
       nav_cta: "Contact Me",
       hero_eyebrow: "Web Developer & AI Enthusiast",
       hero_title: `Building Modern Websites & <em class="gradient-text">AI-Powered</em> Digital Solutions.`,
@@ -92,9 +107,10 @@
       hero_chip_2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>Responsive`,
       loader_hint_continue: "CLICK ANYWHERE TO CONTINUE",
       about_eyebrow: "About Me",
-      about_title: "Focusing on digital solutions with real impact.",
-      about_p1: "I'm Dhaifan, an RPL student who builds real-world digital solutions well before graduation. From a forex prop-trading platform to a desktop app powered by local LLMs — I don't just study technology; I apply it where it actually matters.",
-      about_p2: "My approach always starts with understanding <em>why</em>, not just <em>how</em>. Every project is built with clean architecture, intentional integration, and a focus on real impact — not just aesthetics.",
+      about_title: "Building digital solutions from real-world problems.",
+      about_p1: "I'm Dhaifan, an Informatics student passionate about software engineering, AI integration, and LLM-based technologies. Before and during college, I have been actively building digital projects ranging from websites and information systems to AI-powered applications.",
+      about_p2: "To me, building software is not just about writing code, but understanding the core problem and finding the right approach to solve it. Therefore, every project I develop carefully considers user needs, system structure, technology integration, and real-world viability.",
+      about_p3: "Currently, I continue to sharpen my skills in software engineering and AI while creating impactful projects as spaces to learn, experiment, and deliver real results.",
       stat_1_label: "Projects Completed",
       stat_2_label: "Technologies Mastered",
       stat_3_label: "Years Experience",
@@ -273,13 +289,26 @@
   }));
 
   // ---------- MARQUEE LOOP: card Keahlian & Project jalan ke kanan lalu muncul lagi dari kiri, berulang ----------
-  (function initCardMarquee() {
-    // hormati preferensi "kurangi gerakan" (biar tetap nyaman dibaca)
+  let marqueeSeq = 0;
+
+  function setupMarqueeForGrid(grid) {
+    if (!grid) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const grids = document.querySelectorAll('#skills .skills-grid, #projects .proj-grid');
-    if (!grids.length) return;
-    let seq = 0;
+    // Pastikan clip wrapper dipasang sekali
+    let clip = grid.parentElement;
+    if (!clip || !clip.classList.contains('px-marquee-clip')) {
+      clip = document.createElement('div');
+      clip.className = 'px-marquee-clip';
+      grid.parentNode.insertBefore(clip, grid);
+      clip.appendChild(grid);
+    }
+
+    // Bersihkan clone lama sebelum cloning ulang agar loop tetap presisi
+    grid.querySelectorAll('.px-clone').forEach(el => el.remove());
+
+    const cards = Array.from(grid.children);
+    if (!cards.length) return;
 
     // id unik untuk isi duplikat: biar id SVG/gradient tidak dobel dan tetap tampil
     const uniquifyIds = (root, suffix) => {
@@ -297,154 +326,1196 @@
       });
     };
 
-    grids.forEach(grid => {
-      if (grid.dataset.marquee === 'on') return;
-      const cards = Array.from(grid.children);
-      if (!cards.length) return;
-      grid.dataset.marquee = 'on';
+    // duplikat isi grid sekali: animasi -50% -> 0 jadi mulus tanpa celah
+    cards.forEach(card => {
+      card.classList.remove('reveal');
+      card.style.removeProperty('transition-delay');
 
-      // pembungkus pemotong + fade tepi kiri/kanan
-      const clip = document.createElement('div');
-      clip.className = 'px-marquee-clip';
-      grid.parentNode.insertBefore(clip, grid);
-      clip.appendChild(grid);
-
-      // duplikat isi grid sekali: animasi -50% -> 0 jadi mulus tanpa celah
-      cards.forEach(card => {
-        card.classList.remove('reveal');
-        card.style.removeProperty('transition-delay');
-
-        const clone = card.cloneNode(true);
-        clone.classList.add('px-clone');
-        clone.setAttribute('aria-hidden', 'true');
-        clone.style.removeProperty('transition-delay');
-        // Kelas transisi i18n tidak boleh ikut tersalin: kalau nyangkut, kartu
-        // duplikat berhenti di opacity:0 → deskripsi project tidak terlihat.
-        // Sekalian samakan bahasanya dengan bahasa yang sedang aktif.
-        clone.querySelectorAll('[data-i18n], [data-i18n-ph]').forEach(el => {
-          el.classList.remove('i18n-changing');
-          const key = el.getAttribute('data-i18n');
-          if (key && translations[currentLang] && translations[currentLang][key]) el.innerHTML = translations[currentLang][key];
-          const phKey = el.getAttribute('data-i18n-ph');
-          if (phKey && translations[currentLang] && translations[currentLang][phKey]) el.setAttribute('placeholder', translations[currentLang][phKey]);
-        });
-        uniquifyIds(clone, '-m' + (++seq));
-        // duplikat cuma visual: jangan jadi stop tab keyboard
-        clone.querySelectorAll('a, button, input, [tabindex]').forEach(el => el.setAttribute('tabindex', '-1'));
-        clone.querySelectorAll('video').forEach(v => {
-          v.removeAttribute('autoplay');
-          v.muted = true;
-          try { v.pause(); } catch (err) {}
-          // tampilkan frame pertama sebagai still (video hanya berjalan di card asli)
-          v.addEventListener('loadedmetadata', () => { try { v.currentTime = .05; } catch (err) {} }, { once: true });
-        });
-        grid.appendChild(clone);
+      const clone = card.cloneNode(true);
+      clone.classList.add('px-clone');
+      clone.setAttribute('aria-hidden', 'true');
+      clone.style.removeProperty('transition-delay');
+      clone.querySelectorAll('[data-i18n], [data-i18n-ph]').forEach(el => {
+        el.classList.remove('i18n-changing');
+        const key = el.getAttribute('data-i18n');
+        if (key && translations[currentLang] && translations[currentLang][key]) el.innerHTML = translations[currentLang][key];
+        const phKey = el.getAttribute('data-i18n-ph');
+        if (phKey && translations[currentLang] && translations[currentLang][phKey]) el.setAttribute('placeholder', translations[currentLang][phKey]);
       });
+      uniquifyIds(clone, '-m' + (++marqueeSeq));
+      clone.querySelectorAll('a, button, input, [tabindex]').forEach(el => el.setAttribute('tabindex', '-1'));
+      clone.querySelectorAll('video').forEach(v => {
+        v.removeAttribute('autoplay');
+        v.muted = true;
+        try { v.pause(); } catch (err) {}
+        v.addEventListener('loadedmetadata', () => { try { v.currentTime = .05; } catch (err) {} }, { once: true });
+      });
+      grid.appendChild(clone);
+    });
 
-      grid.classList.add('px-marquee');
+    grid.classList.add('px-marquee');
 
-      // hemat CPU/baterai: pause saat section tidak terlihat
-      const sec = grid.closest('section');
-      if (sec && 'IntersectionObserver' in window) {
+    // Sesuaikan durasi secara proporsional sesuai jumlah kartu asli
+    if (grid.classList.contains('proj-grid')) {
+      grid.style.setProperty('--marq-dur', Math.max(38, cards.length * 8) + 's');
+    }
+
+    // Pasang IntersectionObserver dan Pointer drag handler hanya 1 kali per grid
+    if (grid.dataset.listeners === 'true') return;
+    grid.dataset.listeners = 'true';
+
+    // hemat CPU/baterai: pause saat section tidak terlihat
+    const sec = grid.closest('section');
+    if (sec && 'IntersectionObserver' in window) {
       const vio = new IntersectionObserver(entries => {
-          entries.forEach(en => grid.classList.toggle('marquee-paused', !en.isIntersecting));
-        }, { rootMargin: '150px 0px' });
-        vio.observe(sec);
+        entries.forEach(en => grid.classList.toggle('marquee-paused', !en.isIntersecting));
+      }, { rootMargin: '150px 0px' });
+      vio.observe(sec);
+    }
+
+    // ===== SWIPE / DRAG MANUAL (Pointer Events: mouse, touch, stylus) =====
+    let _dragging = false, _moved = false, _startX = 0, _baseX = 0;
+    let _lastX = 0, _lastT = 0, _velX = 0, _momRAF = null, _resumeTO = null, _ended = true;
+
+    const _trackW = () => (grid.scrollWidth || 0) / 2 || 1;
+    const _readX = () => {
+      const t = getComputedStyle(grid).transform;
+      if (!t || t === 'none') return 0;
+      try { return (window.DOMMatrixReadOnly ? new DOMMatrixReadOnly(t) : new DOMMatrix(t)).m41; } catch (e) { return 0; }
+    };
+    const _wrapX = (x) => { const w = _trackW(); x %= w; if (x > 0) x -= w; return x; };
+    const _setX = (x) => { grid.style.transform = `translateX(${x}px)`; };
+
+    const _onStart = (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (_momRAF) { cancelAnimationFrame(_momRAF); _momRAF = null; }
+      if (_resumeTO) { clearTimeout(_resumeTO); _resumeTO = null; }
+      _ended = false;
+      _dragging = true; _moved = false;
+      _startX = _lastX = e.clientX; _lastT = performance.now(); _velX = 0;
+      _baseX = _readX();
+      grid.style.animation = 'none';
+      _setX(_baseX);
+      grid.style.cursor = 'grabbing';
+      try { grid.setPointerCapture(e.pointerId); } catch (err) {}
+    };
+
+    const _onMove = (e) => {
+      if (!_dragging) return;
+      const dx = e.clientX - _startX;
+      if (!_moved && Math.abs(dx) > 4) _moved = true;
+      const now = performance.now(), dt = Math.max(1, now - _lastT);
+      _velX = (e.clientX - _lastX) / dt * 16.67;
+      _lastX = e.clientX; _lastT = now;
+      _setX(_wrapX(_baseX + dx));
+    };
+
+    const _onEnd = () => {
+      if (!_dragging) return;
+      _dragging = false; grid.style.cursor = '';
+      if (_momRAF) { cancelAnimationFrame(_momRAF); _momRAF = null; }
+      const w = _trackW();
+      let x = _readX();
+      const _finishDrag = () => {
+        if (_ended) return;
+        _ended = true;
+        if (_resumeTO) { clearTimeout(_resumeTO); _resumeTO = null; }
+        if (_momRAF) { cancelAnimationFrame(_momRAF); _momRAF = null; }
+        const dur = parseFloat(getComputedStyle(grid).getPropertyValue('--marq-dur')) || 32;
+        const p = Math.min(1, Math.max(0, 1 + x / w));
+        grid.style.transform = '';
+        grid.style.animation = '';
+        grid.style.animationDelay = (-p * dur) + 's';
+      };
+      if (!_moved || Math.abs(_velX) < 1.5) { _finishDrag(); return; }
+      const _momentum = () => {
+        _velX *= 0.9; x += _velX;
+        if (x > 0) x -= w; else if (x <= -w) x += w;
+        _setX(x);
+        if (Math.abs(_velX) > 0.4) { _momRAF = requestAnimationFrame(_momentum); }
+        else { _momRAF = null; _finishDrag(); }
+      };
+      _momRAF = requestAnimationFrame(_momentum);
+      _resumeTO = setTimeout(_finishDrag, 1500);
+    };
+
+    grid.addEventListener('pointerdown', _onStart);
+    grid.addEventListener('pointermove', _onMove);
+    grid.addEventListener('pointerup', _onEnd);
+    grid.addEventListener('pointercancel', _onEnd);
+    grid.addEventListener('lostpointercapture', _onEnd);
+    grid.addEventListener('dragstart', e => e.preventDefault());
+    grid.addEventListener('click', e => {
+      if (!_moved) return;
+      _moved = false;
+      e.preventDefault(); e.stopPropagation();
+    }, true);
+  }
+
+  function initCardMarquee() {
+    const grids = document.querySelectorAll('#skills .skills-grid, #projects .proj-grid');
+    grids.forEach(grid => setupMarqueeForGrid(grid));
+  }
+  initCardMarquee();
+
+  // ---------- PENGELOLA PROYEK & SINKRONISASI PORTOFOLIO (CRUD + GITHUB) ----------
+  const DEFAULT_PORTFOLIO_PROJECTS = [
+    {
+      id: 'proj_forex',
+      title: 'PropFirmAcademyForex.com',
+      description: 'PropAcademyForex.com adalah platform prop trading yang saya kembangkan dengan Dashboard Trader dan Dashboard Affiliate untuk memantau performa akun, referral, serta komisi secara real-time.',
+      tags: ['React', 'Laravel', 'Python', 'VPS', 'Firebase'],
+      githubUrl: 'https://github.com/Komouy',
+      demoUrl: 'https://www.propacademyforex.com/',
+      image: 'forexacademy.png',
+      source: 'static'
+    },
+    {
+      id: 'proj_infa',
+      title: 'Informatika - Data',
+      description: 'Platform informasi mahasiswa Informatika UIN Saizu yang mengelola pengumuman, jadwal, deadline, lomba, informasi dosen, dan berbagai informasi kelas secara terstruktur.',
+      tags: ['TypeScript', 'Firebase', 'Gemini API', 'Groq API', 'Baileys'],
+      githubUrl: 'https://github.com/Komouy',
+      demoUrl: 'https://s1-infa.vercel.app/',
+      image: 'infa.png',
+      source: 'static'
+    },
+    {
+      id: 'proj_smk',
+      title: "SMK Ma'arif 1 Kembaran",
+      description: "SMK Ma'arif 1 Kembaran adalah website profil sekolah dan portal PPDB Online serta Bursa Kerja Khusus (BKK) yang dirancang modern, responsif, dan memudahkan akses informasi bagi calon siswa serta alumni.",
+      tags: ['PHP', 'JavaScript', 'CSS3', 'MySQL', 'PPDB Online'],
+      githubUrl: 'https://github.com/Komouy/smk-maarif',
+      demoUrl: 'https://smkmaarif1kembaran.sch.id/',
+      image: 'smkmaarif.png',
+      source: 'static'
+    },
+    {
+      id: 'proj_arunika',
+      title: 'Arunika AI',
+      description: 'Arunika AI adalah aplikasi desktop berbasis AI yang memungkinkan pengguna berinteraksi dengan Large Language Models (LLM) secara langsung untuk membantu berbagai kebutuhan produktivitas melalui antarmuka yang sederhana dan modern.',
+      tags: ['Python', 'Fast API', 'Ollama', 'Qwen 2.5B'],
+      githubUrl: 'https://github.com/Komouy',
+      demoUrl: '',
+      image: 'arunika.png',
+      source: 'static'
+    },
+    {
+      id: 'proj_klyro',
+      title: 'KlyroCLI',
+      description: 'KlyroCLI adalah CLI berbasis AI yang membantu developer menulis, memahami, dan mengelola kode langsung melalui terminal dengan memanfaatkan Large Language Models (LLM) dan sistem routing model untuk memilih model yang sesuai dengan kebutuhan.',
+      tags: ['Python', 'Fast API', 'Ollama', 'Qwen 2.5B'],
+      githubUrl: 'https://github.com/Komouy/KlyroCLI',
+      demoUrl: '',
+      image: 'klyro.png',
+      source: 'static'
+    }
+  ];
+
+  const PROJ_STORAGE_KEY = 'portfolio_custom_projects_v1';
+
+  const escapeHtml = (str) => {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  };
+
+  function getStoredProjects() {
+    try {
+      const data = localStorage.getItem(PROJ_STORAGE_KEY);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch (e) {}
+    saveStoredProjects(DEFAULT_PORTFOLIO_PROJECTS);
+    return JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO_PROJECTS));
+  }
+
+  function saveStoredProjects(list) {
+    try {
+      localStorage.setItem(PROJ_STORAGE_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  function showProjToast(msg) {
+    const toast = document.getElementById('projToast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(window._projToastT);
+    window._projToastT = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3200);
+  }
+
+  // Render semua proyek yang ada di data ke dalam grid portofolio
+  function renderPortfolioProjects() {
+    const projGrid = document.querySelector('#projects .proj-grid');
+    if (!projGrid) return;
+
+    const projects = getStoredProjects();
+    const countEl = document.getElementById('activeProjCount');
+    if (countEl) countEl.textContent = projects.length;
+
+    projGrid.innerHTML = '';
+
+    projects.forEach((proj, idx) => {
+      const card = document.createElement('div');
+      card.className = 'proj-card reveal';
+      card.setAttribute('data-proj-id', proj.id);
+      card.style.transitionDelay = (idx * 0.1).toFixed(1) + 's';
+
+      const titleEsc = escapeHtml(proj.title);
+      const descEsc = escapeHtml(proj.description);
+      const tagsList = Array.isArray(proj.tags) ? proj.tags : String(proj.tags || '').split(',').map(s => s.trim()).filter(Boolean);
+      const tagsHtml = tagsList.map(t => `<span>${escapeHtml(t)}</span>`).join('');
+
+      const demoBtn = proj.demoUrl && proj.demoUrl.trim()
+        ? `<a href="${escapeHtml(proj.demoUrl)}" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h7v7M21 3l-9 9M5 5h6v2H7v10h10v-4h2v6H5z"/></svg>
+             Demo
+           </a>`
+        : `<a href="#contact">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h7v7M21 3l-9 9M5 5h6v2H7v10h10v-4h2v6H5z"/></svg>
+             Demo
+           </a>`;
+
+      const githubBtn = proj.githubUrl && proj.githubUrl.trim()
+        ? `<a href="${escapeHtml(proj.githubUrl)}" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.16 19.5c.5.1.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.1.39-1.99 1.03-2.69-.1-.26-.45-1.29.1-2.68 0 0 .84-.27 2.75 1.02a9.4 9.4 0 015 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.4.2 2.42.1 2.68.64.7 1.03 1.6 1.03 2.69 0 3.85-2.34 4.7-4.57 4.94.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0012 2z"/></svg>
+             GitHub
+           </a>`
+        : '';
+
+      const imgSrc = proj.image && proj.image.trim();
+      const primaryTag = tagsList[0] || 'PROJECT';
+      const imgMarkup = imgSrc
+        ? `<img src="${escapeHtml(imgSrc)}" alt="${titleEsc} Preview" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+           <div class="proj-thumb-pixel-cover" style="display:none; position:absolute; inset:0;">
+             <div class="pixel-cover-badge">${escapeHtml(primaryTag)}</div>
+             <div class="pixel-cover-name">${titleEsc}</div>
+           </div>`
+        : `<div class="proj-thumb-pixel-cover" style="position:absolute; inset:0;">
+             <div class="pixel-cover-badge">${escapeHtml(primaryTag)}</div>
+             <div class="pixel-cover-name">${titleEsc}</div>
+           </div>`;
+
+      card.innerHTML = `
+        <div class="card-shine"></div>
+        <div class="proj-thumb" style="background:none; position:relative; overflow:hidden;">
+          ${imgMarkup}
+        </div>
+        <div class="proj-body">
+          <h3>
+            <a href="${escapeHtml(proj.demoUrl || proj.githubUrl || '#')}" target="_blank" rel="noopener">
+              ${titleEsc}
+            </a>
+          </h3>
+          <p>${descEsc}</p>
+          <div class="proj-tags">${tagsHtml}</div>
+          <div class="proj-links">
+            ${githubBtn}
+            ${demoBtn}
+          </div>
+        </div>
+      `;
+
+      projGrid.appendChild(card);
+    });
+
+    setupMarqueeForGrid(projGrid);
+  }
+
+  // Inisialisasi tampilan proyek saat halaman pertama kali dibuka
+  renderPortfolioProjects();
+
+  // ---------- PANEL PENGELOLA PROYEK (MODAL) DENGAN VERIFIKASI PIN ----------
+  (function initProjectManager() {
+    const modal = document.getElementById('projManagerModal');
+    const openBtn = document.getElementById('btnOpenProjManager');
+    const closeBtn = document.getElementById('projManagerClose');
+    const footerCloseBtn = document.getElementById('btnCloseProjManager');
+    const backdrop = document.getElementById('projManagerBackdrop');
+    const bodyEl = document.getElementById('projManagerBody');
+    const tabs = document.querySelectorAll('.proj-m-tab');
+    const resetBtn = document.getElementById('btnResetProjects');
+    const exportBtn = document.getElementById('btnExportProjects');
+    const statusEl = document.getElementById('projManagerStatus');
+
+    // Elemen Auth PIN
+    const authModal = document.getElementById('projAuthModal');
+    const authBackdrop = document.getElementById('projAuthBackdrop');
+    const authClose = document.getElementById('projAuthClose');
+    const authCancelBtn = document.getElementById('btnCancelAuth');
+    const authForm = document.getElementById('projAuthForm');
+    const authPinInput = document.getElementById('projAuthPin');
+    const authError = document.getElementById('projAuthError');
+    const changePinBtn = document.getElementById('btnChangePin');
+
+    if (!modal || !openBtn) return;
+
+    let currentTab = 'active';
+    let editingProjectId = null;
+    let githubReposCache = null;
+
+    // PIN bawaan: 2026 (SHA-256)
+    const DEFAULT_PIN_HASH = '158a323a7ba44870f23d96f1516dd70aa48e9a72db4ebb026b0a89e212a208ab';
+
+    async function hashPin(pin) {
+      if (window.crypto && window.crypto.subtle) {
+        try {
+          const buf = new TextEncoder().encode(pin);
+          const hash = await crypto.subtle.digest('SHA-256', buf);
+          return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch (e) {}
+      }
+      return 'fallback_' + pin;
+    }
+
+    // Panel selalu terkunci secara default (tidak ada sesi terbuka permanen)
+    openBtn.style.display = 'none';
+
+    function openModal() {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      renderCurrentTab();
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+      editingProjectId = null;
+      // Selalu terkunci kembali saat panel ditutup
+    }
+
+    function openAuthModal() {
+      if (authModal) {
+        authModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        if (authError) authError.textContent = '';
+        if (authPinInput) {
+          authPinInput.value = '';
+          setTimeout(() => authPinInput.focus(), 150);
+        }
+      }
+    }
+
+    function closeAuthModal() {
+      if (authModal) authModal.classList.remove('active');
+      document.body.style.overflow = '';
+      if (authError) authError.textContent = '';
+    }
+
+    // Trigger Tombol Kelola: selalu minta verifikasi PIN
+    openBtn.addEventListener('click', openAuthModal);
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (footerCloseBtn) footerCloseBtn.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+
+    if (authClose) authClose.addEventListener('click', closeAuthModal);
+    if (authCancelBtn) authCancelBtn.addEventListener('click', closeAuthModal);
+    if (authBackdrop) authBackdrop.addEventListener('click', closeAuthModal);
+
+    // Form Submit PIN
+    if (authForm) {
+      authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pin = (authPinInput ? authPinInput.value : '').trim();
+        if (!pin) return;
+
+        const hashed = await hashPin(pin);
+        const storedHash = localStorage.getItem('portfolio_admin_pin_hash') || DEFAULT_PIN_HASH;
+
+        if (hashed === storedHash) {
+          closeAuthModal();
+          openModal();
+          showProjToast('Akses pemilik terverifikasi.');
+        } else {
+          if (authError) authError.textContent = 'AKSES DITOLAK: PIN SALAH.';
+          if (authPinInput) {
+            authPinInput.style.borderColor = '#dc2626';
+            authPinInput.value = '';
+            authPinInput.focus();
+            setTimeout(() => { authPinInput.style.borderColor = ''; }, 1000);
+          }
+        }
+      });
+    }
+
+    // Tombol Ganti PIN
+    if (changePinBtn) {
+      changePinBtn.addEventListener('click', async () => {
+        const currentPin = prompt('Masukkan PIN lama:');
+        if (!currentPin) return;
+        const hashedCurrent = await hashPin(currentPin.trim());
+        const storedHash = localStorage.getItem('portfolio_admin_pin_hash') || DEFAULT_PIN_HASH;
+
+        if (hashedCurrent !== storedHash) {
+          alert('PIN lama salah!');
+          return;
+        }
+
+        const newPin = prompt('Masukkan PIN baru (minimal 4 karakter):');
+        if (!newPin || newPin.trim().length < 4) {
+          alert('PIN baru tidak boleh kosong dan minimal 4 karakter!');
+          return;
+        }
+
+        const confirmPin = prompt('Ketik ulang PIN baru untuk konfirmasi:');
+        if (newPin.trim() !== confirmPin.trim()) {
+          alert('Konfirmasi PIN tidak cocok!');
+          return;
+        }
+
+        const hashedNew = await hashPin(newPin.trim());
+        localStorage.setItem('portfolio_admin_pin_hash', hashedNew);
+        showProjToast('PIN Admin berhasil diubah!');
+      });
+    }
+
+    // Shortcut Keyboard Rahasia: Ctrl+Alt+P atau Alt+P atau Ctrl+Shift+P
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (authModal && authModal.classList.contains('active')) closeAuthModal();
+        else if (modal && modal.classList.contains('active')) closeModal();
+      } else if ((e.altKey && (e.key === 'p' || e.key === 'P')) || (e.ctrlKey && e.shiftKey && (e.key === 'p' || e.key === 'P')) || (e.ctrlKey && e.altKey && (e.key === 'p' || e.key === 'P'))) {
+        e.preventDefault();
+        if (modal.classList.contains('active')) {
+          closeModal();
+        } else if (authModal && authModal.classList.contains('active')) {
+          closeAuthModal();
+        } else {
+          openAuthModal();
+        }
+      }
+    });
+
+    // Pemicu Rahasia Mobile: Ketuk teks hak cipta footer 5x dalam 3 detik
+    const footerTrigger = document.getElementById('footerSecretTrigger');
+    if (footerTrigger) {
+      let clickCount = 0;
+      let clickTimer = null;
+      footerTrigger.addEventListener('click', () => {
+        clickCount++;
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => { clickCount = 0; }, 3000);
+        if (clickCount >= 5) {
+          clickCount = 0;
+          openAuthModal();
+        }
+      });
+    }
+
+    // Fungsi Kompresi dan Pembacaan Gambar Unggahan
+    function compressAndReadImage(file, callback) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rawData = e.target.result;
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 800;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressedData = canvas.toDataURL('image/jpeg', 0.82);
+          callback(compressedData);
+        };
+        img.onerror = () => callback(rawData);
+        img.src = rawData;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Helper Pasang Handler Unggah Gambar
+    function attachImageUploader(container, fileInputId, textInputId, previewBarId, previewImgId, clearBtnId) {
+      const fileInput = container.querySelector('#' + fileInputId);
+      const textInput = container.querySelector('#' + textInputId);
+      const previewBar = container.querySelector('#' + previewBarId);
+      const previewImg = container.querySelector('#' + previewImgId);
+      const clearBtn = container.querySelector('#' + clearBtnId);
+
+      const updatePreview = (url) => {
+        if (url && url.trim()) {
+          previewImg.src = url.trim();
+          previewBar.style.display = 'flex';
+        } else {
+          previewImg.src = '';
+          previewBar.style.display = 'none';
+        }
+      };
+
+      if (fileInput) {
+        fileInput.addEventListener('change', () => {
+          const file = fileInput.files && fileInput.files[0];
+          if (file) {
+            compressAndReadImage(file, (dataUrl) => {
+              textInput.value = dataUrl;
+              updatePreview(dataUrl);
+              showProjToast('Gambar berhasil dimuat!');
+            });
+          }
+        });
       }
 
-      // ===== SWIPE / DRAG MANUAL (Pointer Events: mouse, touch, stylus) =====
-      // PENTING: track ini punya CSS animation pada `transform` (pxMarqueeLoop),
-      // dan deklarasi animation MENANG atas inline style. Jadi selama animasi
-      // masih terpasang, `grid.style.transform` diabaikan total → kartu tidak
-      // bisa digeser. Karena itu saat drag dimulai animasinya dimatikan dulu
-      // (animation:none), lalu saat drag selesai posisinya disambung kembali ke
-      // animasi lewat `animation-delay` negatif → mulus, tanpa lompat.
-      let _dragging = false, _moved = false, _startX = 0, _baseX = 0;
-      let _lastX = 0, _lastT = 0, _velX = 0, _momRAF = null, _resumeTO = null, _ended = true;
+      if (textInput) {
+        textInput.addEventListener('input', () => updatePreview(textInput.value));
+        textInput.addEventListener('change', () => updatePreview(textInput.value));
+      }
 
-      const _trackW = () => (grid.scrollWidth || 0) / 2 || 1;   // lebar 1 set kartu
-      const _readX = () => {
-        const t = getComputedStyle(grid).transform;
-        if (!t || t === 'none') return 0;
-        try { return (window.DOMMatrixReadOnly ? new DOMMatrixReadOnly(t) : new DOMMatrix(t)).m41; } catch (e) { return 0; }
-      };
-      const _wrapX = (x) => { const w = _trackW(); x %= w; if (x > 0) x -= w; return x; };
-      const _setX = (x) => { grid.style.transform = `translateX(${x}px)`; };
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          textInput.value = '';
+          if (fileInput) fileInput.value = '';
+          updatePreview('');
+        });
+      }
+    }
 
-      const _onStart = (e) => {
-        if (e.pointerType === 'mouse' && e.button !== 0) return;   // klik kanan jangan menyeret
-        if (_momRAF) { cancelAnimationFrame(_momRAF); _momRAF = null; }
-        if (_resumeTO) { clearTimeout(_resumeTO); _resumeTO = null; }
-        _ended = false;
-        _dragging = true; _moved = false;
-        _startX = _lastX = e.clientX; _lastT = performance.now(); _velX = 0;
-        _baseX = _readX();          // baca posisi animasi DULU, baru lepas kontrolnya
-        grid.style.animation = 'none';
-        _setX(_baseX);
-        grid.style.cursor = 'grabbing';
-        try { grid.setPointerCapture(e.pointerId); } catch (err) {}
-      };
+    // Helper Pasang Tag Manager Interaktif (Edit, Tambah, Hapus Chip, Sugesti Populer)
+    function attachTagManager(container, managerId, initialTags) {
+      const manager = container.querySelector('#' + managerId);
+      if (!manager) return;
 
-      const _onMove = (e) => {
-        if (!_dragging) return;
-        const dx = e.clientX - _startX;
-        if (!_moved && Math.abs(dx) > 4) _moved = true;            // ambang batas "benar-benar geser"
-        const now = performance.now(), dt = Math.max(1, now - _lastT);
-        _velX = (e.clientX - _lastX) / dt * 16.67;                 // px per frame
-        _lastX = e.clientX; _lastT = now;
-        _setX(_wrapX(_baseX + dx));                                // wrap → terasa infinite
-      };
+      const chipsList = manager.querySelector('.proj-tags-chips-list');
+      const inputEl = manager.querySelector('.proj-tag-new-input');
+      const addBtn = manager.querySelector('.proj-btn-add-tag');
+      const hiddenInput = manager.querySelector('input[type="hidden"][name="tags"]');
+      const quickBtns = manager.querySelectorAll('.proj-tag-quick');
 
-      const _onEnd = () => {
-        if (!_dragging) return;
-        _dragging = false; grid.style.cursor = '';
-        if (_momRAF) { cancelAnimationFrame(_momRAF); _momRAF = null; }
-        const w = _trackW();
-        let x = _readX();
-        // Sambung lagi ke CSS animation tepat di posisi terakhir (idempoten,
-        // sekali saja) supaya track tidak pernah "beku" di animation:none.
-        const _finishDrag = () => {
-          if (_ended) return;
-          _ended = true;
-          if (_resumeTO) { clearTimeout(_resumeTO); _resumeTO = null; }
-          if (_momRAF) { cancelAnimationFrame(_momRAF); _momRAF = null; }
-          const dur = parseFloat(getComputedStyle(grid).getPropertyValue('--marq-dur')) || 32; // detik
-          const p = Math.min(1, Math.max(0, 1 + x / w));            // animasi: -w → 0  ==  progress 0 → 1
-          grid.style.transform = '';
-          grid.style.animation = '';
-          grid.style.animationDelay = (-p * dur) + 's';
-        };
-        // tap / geser pelan → langsung lanjut, tidak perlu momentum
-        if (!_moved || Math.abs(_velX) < 1.5) { _finishDrag(); return; }
-        const _momentum = () => {
-          _velX *= 0.9; x += _velX;
-          if (x > 0) x -= w; else if (x <= -w) x += w;
-          _setX(x);
-          if (Math.abs(_velX) > 0.4) { _momRAF = requestAnimationFrame(_momentum); }
-          else { _momRAF = null; _finishDrag(); }
-        };
-        _momRAF = requestAnimationFrame(_momentum);
-        // pengaman: kalau rAF dibekukan browser (tab background / hemat daya),
-        // animasi tetap disambung supaya track tidak nyangkut "beku".
-        _resumeTO = setTimeout(_finishDrag, 1500);
-      };
+      let currentTags = Array.isArray(initialTags)
+        ? [...initialTags]
+        : String(initialTags || '').split(',').map(s => s.trim()).filter(Boolean);
 
-      grid.addEventListener('pointerdown', _onStart);
-      grid.addEventListener('pointermove', _onMove);
-      grid.addEventListener('pointerup', _onEnd);
-      grid.addEventListener('pointercancel', _onEnd);
-      grid.addEventListener('lostpointercapture', _onEnd);
-      // matikan "drag bawaan" browser pada gambar (bisa membatalkan gesture kita)
-      grid.addEventListener('dragstart', e => e.preventDefault());
-      // setelah benar-benar digeser, klik ke link (GitHub/Demo) dibatalkan
-      grid.addEventListener('click', e => {
-        if (!_moved) return;
-        _moved = false;
-        e.preventDefault(); e.stopPropagation();
-      }, true);
+      function renderTagChips() {
+        if (!chipsList) return;
+        if (!currentTags.length) {
+          chipsList.innerHTML = '<span class="proj-tag-empty-hint">Belum ada tag. Ketik atau pilih di bawah.</span>';
+        } else {
+          chipsList.innerHTML = currentTags.map((t, idx) => `
+            <span class="proj-tag-chip">
+              <span class="proj-tag-text">${escapeHtml(t)}</span>
+              <button type="button" class="proj-tag-del-btn" data-idx="${idx}" title="Hapus tag ${escapeHtml(t)}">&times;</button>
+            </span>
+          `).join('');
+        }
+
+        if (hiddenInput) {
+          hiddenInput.value = currentTags.join(', ');
+        }
+
+        chipsList.querySelectorAll('.proj-tag-del-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const idx = parseInt(btn.getAttribute('data-idx'), 10);
+            if (!isNaN(idx) && idx >= 0 && idx < currentTags.length) {
+              const removed = currentTags.splice(idx, 1);
+              renderTagChips();
+              showProjToast('Tag "' + removed[0] + '" dihapus.');
+            }
+          });
+        });
+      }
+
+      function addTag(raw) {
+        if (!raw) return;
+        const parts = String(raw).split(',').map(s => s.trim()).filter(Boolean);
+        let addedCount = 0;
+        parts.forEach(part => {
+          const exists = currentTags.some(t => t.toLowerCase() === part.toLowerCase());
+          if (!exists && part.length > 0) {
+            currentTags.push(part);
+            addedCount++;
+          }
+        });
+
+        if (addedCount > 0) {
+          renderTagChips();
+        }
+      }
+
+      if (addBtn && inputEl) {
+        addBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const val = inputEl.value.trim();
+          if (val) {
+            addTag(val);
+            inputEl.value = '';
+            inputEl.focus();
+          }
+        });
+
+        inputEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const val = inputEl.value.trim();
+            if (val) {
+              addTag(val);
+              inputEl.value = '';
+            }
+          }
+        });
+      }
+
+      quickBtns.forEach(qBtn => {
+        qBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const tag = qBtn.getAttribute('data-tag');
+          if (tag) {
+            addTag(tag);
+          }
+        });
+      });
+
+      renderTagChips();
+    }
+
+    // Tab switcher
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentTab = tab.getAttribute('data-tab') || 'active';
+        editingProjectId = null;
+        renderCurrentTab();
+      });
     });
-  })();
 
+    // Reset ke bawaan
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (confirm('Kembalikan daftar proyek ke 5 proyek bawaan?')) {
+          saveStoredProjects(DEFAULT_PORTFOLIO_PROJECTS);
+          renderPortfolioProjects();
+          renderCurrentTab();
+          showProjToast('Daftar proyek berhasil dikembalikan ke bawaan!');
+        }
+      });
+    }
+
+    // Salin JSON
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        const json = JSON.stringify(getStoredProjects(), null, 2);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(json).then(() => {
+            showProjToast('Data JSON proyek berhasil disalin ke clipboard!');
+          }).catch(() => {
+            prompt('Salin teks JSON berikut:', json);
+          });
+        } else {
+          prompt('Salin teks JSON berikut:', json);
+        }
+      });
+    }
+
+    function renderCurrentTab() {
+      if (!bodyEl) return;
+      if (currentTab === 'active') renderActiveProjectsTab();
+      else if (currentTab === 'github') renderGitHubImportTab();
+      else if (currentTab === 'create') renderCreateProjectTab();
+    }
+
+    // TAB 1: DAFTAR PROYEK AKTIF
+    function renderActiveProjectsTab() {
+      const projects = getStoredProjects();
+      const countEl = document.getElementById('activeProjCount');
+      if (countEl) countEl.textContent = projects.length;
+      if (statusEl) statusEl.textContent = 'Menampilkan ' + projects.length + ' proyek aktif di portofolio.';
+
+      if (!projects.length) {
+        bodyEl.innerHTML = `
+          <div style="text-align:center; padding:32px 16px;">
+            <p style="font-family:var(--px-font); font-size:12px; color:var(--gray-500); margin-bottom:12px;">BELUM ADA PROYEK DI PORTOFOLIO</p>
+            <button type="button" class="proj-btn-action" id="emptyAddBtn">+ Tambah Proyek atau Impor dari GitHub</button>
+          </div>
+        `;
+        const btn = document.getElementById('emptyAddBtn');
+        if (btn) {
+          btn.addEventListener('click', () => {
+            const ghTab = document.querySelector('.proj-m-tab[data-tab="github"]');
+            if (ghTab) ghTab.click();
+          });
+        }
+        return;
+      }
+
+      bodyEl.innerHTML = `
+        <div class="proj-tab-header">
+          <div class="proj-tab-header-title">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>DAFTAR PROYEK AKTIF (${projects.length})</span>
+          </div>
+          <button type="button" class="proj-btn-action" id="btnShortcutAddProyek">+ Tambah Proyek</button>
+        </div>
+        <div id="activeProjListContainer" style="display:flex; flex-direction:column; gap:12px;"></div>
+      `;
+
+      const shortcutAdd = document.getElementById('btnShortcutAddProyek');
+      if (shortcutAdd) {
+        shortcutAdd.addEventListener('click', () => {
+          const createTab = document.querySelector('.proj-m-tab[data-tab="create"]');
+          if (createTab) createTab.click();
+        });
+      }
+
+      const listContainer = document.getElementById('activeProjListContainer');
+
+      projects.forEach((proj, idx) => {
+        const item = document.createElement('div');
+        item.className = 'proj-list-item';
+
+        if (editingProjectId === proj.id) {
+          // Mode Edit
+          item.innerHTML = `
+            <div style="font-family:var(--px-font); font-size:11px; color:var(--orange-deep); margin-bottom:4px;">
+              [ EDIT PROYEK #${idx + 1} ]
+            </div>
+            <form class="proj-form-grid" id="editForm_${proj.id}">
+              <div class="proj-form-field">
+                <label>NAMA PROYEK</label>
+                <input type="text" name="title" value="${escapeHtml(proj.title)}" required>
+              </div>
+              <div class="proj-form-field">
+                <label>DESKRIPSI PROYEK</label>
+                <textarea name="description" rows="3" required>${escapeHtml(proj.description)}</textarea>
+              </div>
+              <div class="proj-form-grid-2col">
+                <div class="proj-form-field">
+                  <label>TAUTAN GITHUB</label>
+                  <input type="url" name="githubUrl" value="${escapeHtml(proj.githubUrl || '')}" placeholder="https://github.com/Komouy/...">
+                </div>
+                <div class="proj-form-field">
+                  <label>TAUTAN DEMO (OPSIONAL)</label>
+                  <input type="url" name="demoUrl" value="${escapeHtml(proj.demoUrl || '')}" placeholder="https://demo-app.vercel.app">
+                </div>
+              </div>
+              <div class="proj-form-field">
+                <label>TAG TEKNOLOGI (EDIT & TAMBAH TAG)</label>
+                <div class="proj-tags-manager" id="tagManager_${proj.id}">
+                  <div class="proj-tags-chips-list"></div>
+                  <div class="proj-tag-input-row">
+                    <input type="text" class="proj-tag-new-input" placeholder="Ketik tag lalu tekan Enter...">
+                    <button type="button" class="proj-btn-action proj-btn-primary proj-btn-add-tag">+ Tambah</button>
+                  </div>
+                  <div class="proj-tags-suggest">
+                    <span class="proj-tags-suggest-label">Pilihan Cepat:</span>
+                    <div class="proj-tags-suggest-chips">
+                      <button type="button" class="proj-tag-quick" data-tag="JavaScript">+ JS</button>
+                      <button type="button" class="proj-tag-quick" data-tag="TypeScript">+ TS</button>
+                      <button type="button" class="proj-tag-quick" data-tag="React">+ React</button>
+                      <button type="button" class="proj-tag-quick" data-tag="Next.js">+ Next.js</button>
+                      <button type="button" class="proj-tag-quick" data-tag="Node.js">+ Node.js</button>
+                      <button type="button" class="proj-tag-quick" data-tag="Python">+ Python</button>
+                      <button type="button" class="proj-tag-quick" data-tag="Laravel">+ Laravel</button>
+                      <button type="button" class="proj-tag-quick" data-tag="Tailwind">+ Tailwind</button>
+                      <button type="button" class="proj-tag-quick" data-tag="Canvas">+ Canvas</button>
+                      <button type="button" class="proj-tag-quick" data-tag="AI / ML">+ AI / ML</button>
+                    </div>
+                  </div>
+                  <input type="hidden" name="tags" value="${escapeHtml(Array.isArray(proj.tags) ? proj.tags.join(', ') : (proj.tags || ''))}">
+                </div>
+              </div>
+              <div class="proj-form-field">
+                <label>COVER / GAMBAR PROYEK</label>
+                <div class="proj-upload-row">
+                  <input type="text" name="image" id="editImg_${proj.id}" value="${escapeHtml(proj.image || '')}" placeholder="forexacademy.png, https://..., atau unggah file">
+                  <label class="proj-btn-upload">
+                    <span>Pilih File</span>
+                    <input type="file" accept="image/*" id="editFile_${proj.id}" style="display:none;">
+                  </label>
+                </div>
+                <div class="proj-upload-preview-bar" id="editPrevBar_${proj.id}" style="${proj.image ? 'display:flex;' : 'display:none;'}">
+                  <div class="proj-upload-thumb">
+                    <img id="editPrevImg_${proj.id}" src="${escapeHtml(proj.image || '')}" alt="Preview Cover">
+                  </div>
+                  <div class="proj-upload-info">
+                    <span class="proj-upload-filename">Gambar aktif</span>
+                    <button type="button" class="proj-btn-action proj-btn-delete" id="editClearImg_${proj.id}" style="height:26px !important; min-height:26px !important; padding:0 8px !important; font-size:9px !important;">Hapus Gambar</button>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
+                <button type="submit" class="proj-btn-action proj-btn-primary">Simpan Perubahan</button>
+                <button type="button" class="proj-btn-action" id="cancelEdit_${proj.id}">Batal</button>
+              </div>
+            </form>
+          `;
+
+          attachImageUploader(item, `editFile_${proj.id}`, `editImg_${proj.id}`, `editPrevBar_${proj.id}`, `editPrevImg_${proj.id}`, `editClearImg_${proj.id}`);
+          attachTagManager(item, `tagManager_${proj.id}`, proj.tags);
+
+          const form = item.querySelector(`#editForm_${proj.id}`);
+          form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const fd = new FormData(form);
+            proj.title = (fd.get('title') || '').trim();
+            proj.description = (fd.get('description') || '').trim();
+            proj.githubUrl = (fd.get('githubUrl') || '').trim();
+            proj.demoUrl = (fd.get('demoUrl') || '').trim();
+            proj.image = (fd.get('image') || '').trim();
+            proj.tags = (fd.get('tags') || '').split(',').map(s => s.trim()).filter(Boolean);
+
+            saveStoredProjects(projects);
+            renderPortfolioProjects();
+            editingProjectId = null;
+            renderActiveProjectsTab();
+            showProjToast(`Perubahan proyek "${proj.title}" berhasil disimpan!`);
+          });
+
+          const cancelBtn = item.querySelector(`#cancelEdit_${proj.id}`);
+          cancelBtn.addEventListener('click', () => {
+            editingProjectId = null;
+            renderActiveProjectsTab();
+          });
+        } else {
+          // Mode Tampilan Normal
+          const tagsList = Array.isArray(proj.tags) ? proj.tags : String(proj.tags || '').split(',');
+          const tagsHtml = tagsList.map(t => `<span class="chip" style="font-size:12px; padding:2px 6px;">${escapeHtml(t.trim())}</span>`).join(' ');
+
+          item.innerHTML = `
+            <div class="proj-list-header">
+              <div>
+                <span class="proj-list-title">${idx + 1}. ${escapeHtml(proj.title)}</span>
+                ${proj.demoUrl ? '<span class="proj-list-badge" style="margin-left:6px;">DEMO</span>' : ''}
+                ${proj.githubUrl ? '<span class="proj-list-badge" style="margin-left:4px; background:var(--ink);">GIT</span>' : ''}
+              </div>
+              <div class="proj-list-actions">
+                <button type="button" class="proj-btn-action btn-edit" data-id="${proj.id}">Edit</button>
+                <button type="button" class="proj-btn-action proj-btn-delete btn-delete" data-id="${proj.id}">Hapus</button>
+              </div>
+            </div>
+            <div class="proj-list-desc">${escapeHtml(proj.description)}</div>
+            <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
+              <span style="font-family:var(--px-font); font-size:9px; color:var(--gray-500); margin-right:4px;">TAGS:</span>
+              ${tagsHtml || '<span style="font-size:12px; color:var(--gray-400);">-</span>'}
+              <button type="button" class="proj-tag-quick btn-edit-tag-shortcut" data-id="${proj.id}" style="margin-left:6px; font-size:8.5px; padding:2px 6px;">[ + Edit Tag ]</button>
+            </div>
+          `;
+
+          const editBtn = item.querySelector('.btn-edit');
+          editBtn.addEventListener('click', () => {
+            editingProjectId = proj.id;
+            renderActiveProjectsTab();
+          });
+
+          const editTagBtn = item.querySelector('.btn-edit-tag-shortcut');
+          if (editTagBtn) {
+            editTagBtn.addEventListener('click', () => {
+              editingProjectId = proj.id;
+              renderActiveProjectsTab();
+            });
+          }
+
+          const delBtn = item.querySelector('.btn-delete');
+          delBtn.addEventListener('click', () => {
+            if (confirm(`Hapus proyek "${proj.title}" dari portofolio?`)) {
+              const updated = projects.filter(p => p.id !== proj.id);
+              saveStoredProjects(updated);
+              renderPortfolioProjects();
+              renderActiveProjectsTab();
+              showProjToast(`Proyek "${proj.title}" telah dihapus dari portofolio.`);
+            }
+          });
+        }
+
+        if (listContainer) {
+          listContainer.appendChild(item);
+        } else {
+          bodyEl.appendChild(item);
+        }
+      });
+    }
+
+    // TAB 2: PILIH DARI GITHUB REPO
+    async function renderGitHubImportTab() {
+      if (statusEl) statusEl.textContent = 'Memuat daftar repositori publik GitHub Komouy...';
+
+      bodyEl.innerHTML = `
+        <div style="text-align:center; padding:36px 16px;">
+          <div style="font-family:var(--px-font); font-size:12px; color:var(--orange-deep);">
+            MEMUAT REPOSITORI DARI GITHUB...
+          </div>
+          <div style="font-size:14px; color:var(--gray-500); margin-top:8px;">
+            Menghubungi api.github.com/users/Komouy/repos
+          </div>
+        </div>
+      `;
+
+      try {
+        if (!githubReposCache) {
+          const res = await fetch('https://api.github.com/users/Komouy/repos?sort=pushed&per_page=40');
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          githubReposCache = await res.json();
+        }
+
+        const repos = Array.isArray(githubReposCache) ? githubReposCache : [];
+        const activeProjects = getStoredProjects();
+
+        if (statusEl) statusEl.textContent = 'Ditemukan ' + repos.length + ' repositori publik.';
+
+        bodyEl.innerHTML = `
+          <div class="proj-tab-header">
+            <div class="proj-tab-header-title">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                <path d="M12 2a10 10 0 00-3.16 19.5c.5.1.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.1.39-1.99 1.03-2.69-.1-.26-.45-1.29.1-2.68 0 0 .84-.27 2.75 1.02a9.4 9.4 0 015 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.4.2 2.42.1 2.68.64.7 1.03 1.6 1.03 2.69 0 3.85-2.34 4.7-4.57 4.94.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0012 2z"/>
+              </svg>
+              <span>REPOSITORI PUBLIK GITHUB (@Komouy)</span>
+            </div>
+            <button type="button" class="proj-btn-action" id="btnRefreshGhRepos">Segarkan Data</button>
+          </div>
+          <div id="ghReposList" style="display:flex; flex-direction:column; gap:12px;"></div>
+        `;
+
+        const refreshBtn = document.getElementById('btnRefreshGhRepos');
+        if (refreshBtn) {
+          refreshBtn.addEventListener('click', () => {
+            githubReposCache = null;
+            renderGitHubImportTab();
+          });
+        }
+
+        const listContainer = document.getElementById('ghReposList');
+
+        repos.forEach(repo => {
+          if (!repo) return;
+          if (repo.name.toLowerCase() === 'portofolio') return;
+
+          const isAlreadyInPorto = activeProjects.some(p => {
+            if (p.repoName && p.repoName.toLowerCase() === repo.name.toLowerCase()) return true;
+            if (p.githubUrl && p.githubUrl.toLowerCase().includes(repo.name.toLowerCase())) return true;
+            const normP = p.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const normR = repo.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return normP === normR;
+          });
+
+          const repoCard = document.createElement('div');
+          repoCard.className = 'proj-list-item';
+
+          const formattedTitle = repo.name.replace(/[-_]/g, ' ');
+          const descText = repo.description || 'Proyek repositori open-source ' + repo.name + ' oleh Komouy.';
+          const langText = repo.language || 'Code';
+
+          repoCard.innerHTML = `
+            <div class="proj-list-header">
+              <div>
+                <span class="proj-list-title">${escapeHtml(formattedTitle)}</span>
+                <span class="proj-list-badge proj-badge-dark" style="margin-left:6px;">${escapeHtml(langText)}</span>
+                ${repo.homepage ? '<span class="proj-list-badge" style="margin-left:4px;">WEB</span>' : ''}
+              </div>
+              <div>
+                ${isAlreadyInPorto
+                  ? '<span class="proj-list-badge badge-active">[ SUDAH AKTIF DI PORTO ]</span>'
+                  : `<button type="button" class="proj-btn-action proj-btn-primary btn-add-gh" data-repo="${escapeHtml(repo.name)}">+ Masukkan ke Porto</button>`
+                }
+              </div>
+            </div>
+            <div class="proj-list-desc">${escapeHtml(descText)}</div>
+            <div style="font-size:13px; color:var(--gray-500); display:flex; gap:12px; flex-wrap:wrap;">
+              <span>Repo: <a href="${escapeHtml(repo.html_url)}" target="_blank" rel="noopener" style="color:var(--orange-deep); text-decoration:underline;">${escapeHtml(repo.name)}</a></span>
+              ${repo.homepage ? `<span>Demo: <a href="${escapeHtml(repo.homepage)}" target="_blank" rel="noopener" style="color:var(--orange-deep); text-decoration:underline;">${escapeHtml(repo.homepage)}</a></span>` : ''}
+            </div>
+          `;
+
+          if (!isAlreadyInPorto) {
+            const addBtn = repoCard.querySelector('.btn-add-gh');
+            if (addBtn) {
+              addBtn.addEventListener('click', () => {
+                const newProject = {
+                  id: 'gh_' + repo.name,
+                  repoName: repo.name,
+                  title: formattedTitle,
+                  description: descText,
+                  tags: [langText, ...(repo.topics || []).slice(0, 3)].filter(Boolean),
+                  githubUrl: repo.html_url,
+                  demoUrl: repo.homepage || '',
+                  image: `https://opengraph.githubassets.com/1/Komouy/${repo.name}`,
+                  source: 'github'
+                };
+
+                const currentList = getStoredProjects();
+                currentList.push(newProject);
+                saveStoredProjects(currentList);
+                renderPortfolioProjects();
+                showProjToast(`Proyek "${formattedTitle}" berhasil dimasukkan ke portofolio!`);
+                renderGitHubImportTab();
+              });
+            }
+          }
+
+          listContainer.appendChild(repoCard);
+        });
+
+      } catch (err) {
+        bodyEl.innerHTML = `
+          <div style="text-align:center; padding:32px 16px;">
+            <div style="font-family:var(--px-font); font-size:12px; color:#dc2626; margin-bottom:8px;">
+              GAGAL MENGHUBUNGI GITHUB API
+            </div>
+            <p style="font-size:14px; color:var(--gray-500); margin-bottom:14px;">
+              Kemungkinan batas kuota GitHub API tercapai atau koneksi internet terputus. Anda tetap bisa menambah proyek manual lewat tab "+ Tambah Manual".
+            </p>
+            <button type="button" class="proj-btn-action" id="btnRetryGh">Coba Lagi</button>
+          </div>
+        `;
+        const retryBtn = document.getElementById('btnRetryGh');
+        if (retryBtn) {
+          retryBtn.addEventListener('click', () => {
+            githubReposCache = null;
+            renderGitHubImportTab();
+          });
+        }
+      }
+    }
+
+    // TAB 3: TAMBAH MANUAL
+    function renderCreateProjectTab() {
+      if (statusEl) statusEl.textContent = 'Tambahkan proyek kustom atau proyek klien secara manual.';
+
+      bodyEl.innerHTML = `
+        <div class="proj-tab-header">
+          <div class="proj-tab-header-title">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>TAMBAH PROYEK BARU KE PORTOFOLIO</span>
+          </div>
+        </div>
+        <form class="proj-form-grid" id="createProjForm">
+          <div class="proj-form-field">
+            <label>NAMA PROYEK *</label>
+            <input type="text" name="title" placeholder="Contoh: Super AI Chatbot" required>
+          </div>
+          <div class="proj-form-field">
+            <label>DESKRIPSI PROYEK *</label>
+            <textarea name="description" rows="3" placeholder="Jelaskan fitur utama, masalah yang diselesaikan, dan arsitektur proyek..." required></textarea>
+          </div>
+          <div class="proj-form-grid-2col">
+            <div class="proj-form-field">
+              <label>TAUTAN GITHUB (OPSIONAL)</label>
+              <input type="url" name="githubUrl" placeholder="https://github.com/Komouy/proyek-anda">
+            </div>
+            <div class="proj-form-field">
+              <label>TAUTAN DEMO / WEBSITE (OPSIONAL)</label>
+              <input type="url" name="demoUrl" placeholder="https://proyek-anda.vercel.app">
+            </div>
+          </div>
+          <div class="proj-form-field">
+            <label>TAG TEKNOLOGI (EDIT & TAMBAH TAG)</label>
+            <div class="proj-tags-manager" id="tagManager_create">
+              <div class="proj-tags-chips-list"></div>
+              <div class="proj-tag-input-row">
+                <input type="text" class="proj-tag-new-input" placeholder="Ketik tag lalu tekan Enter...">
+                <button type="button" class="proj-btn-action proj-btn-primary proj-btn-add-tag">+ Tambah</button>
+              </div>
+              <div class="proj-tags-suggest">
+                <span class="proj-tags-suggest-label">Pilihan Cepat:</span>
+                <div class="proj-tags-suggest-chips">
+                  <button type="button" class="proj-tag-quick" data-tag="JavaScript">+ JS</button>
+                  <button type="button" class="proj-tag-quick" data-tag="TypeScript">+ TS</button>
+                  <button type="button" class="proj-tag-quick" data-tag="React">+ React</button>
+                  <button type="button" class="proj-tag-quick" data-tag="Next.js">+ Next.js</button>
+                  <button type="button" class="proj-tag-quick" data-tag="Node.js">+ Node.js</button>
+                  <button type="button" class="proj-tag-quick" data-tag="Python">+ Python</button>
+                  <button type="button" class="proj-tag-quick" data-tag="Laravel">+ Laravel</button>
+                  <button type="button" class="proj-tag-quick" data-tag="Tailwind">+ Tailwind</button>
+                  <button type="button" class="proj-tag-quick" data-tag="Canvas">+ Canvas</button>
+                  <button type="button" class="proj-tag-quick" data-tag="AI / ML">+ AI / ML</button>
+                </div>
+              </div>
+              <input type="hidden" name="tags" value="React, JavaScript">
+            </div>
+          </div>
+          <div class="proj-form-field">
+            <label>COVER / PREVIEW PROYEK (OPSIONAL)</label>
+            <div class="proj-upload-row">
+              <input type="text" name="image" id="createImgInput" placeholder="nama-file.png, https://..., atau unggah file">
+              <label class="proj-btn-upload">
+                <span>Pilih File</span>
+                <input type="file" accept="image/*" id="createFileInput" style="display:none;">
+              </label>
+            </div>
+            <div class="proj-upload-preview-bar" id="createPreviewBar" style="display:none;">
+              <div class="proj-upload-thumb">
+                <img id="createPreviewImg" src="" alt="Preview Cover">
+              </div>
+              <div class="proj-upload-info">
+                <span class="proj-upload-filename">Gambar aktif</span>
+                <button type="button" class="proj-btn-action proj-btn-delete" id="createClearImg" style="height:26px !important; min-height:26px !important; padding:0 8px !important; font-size:9px !important;">Hapus Gambar</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
+            <button type="submit" class="proj-btn-action proj-btn-primary">
+              + Simpan Proyek ke Portofolio
+            </button>
+          </div>
+        </form>
+      `;
+
+      attachImageUploader(bodyEl, 'createFileInput', 'createImgInput', 'createPreviewBar', 'createPreviewImg', 'createClearImg');
+      attachTagManager(bodyEl, 'tagManager_create', ['React', 'JavaScript']);
+
+      const form = document.getElementById('createProjForm');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const title = (fd.get('title') || '').trim();
+        const desc = (fd.get('description') || '').trim();
+        const githubUrl = (fd.get('githubUrl') || '').trim();
+        const demoUrl = (fd.get('demoUrl') || '').trim();
+        const image = (fd.get('image') || '').trim();
+        const tags = (fd.get('tags') || '').split(',').map(s => s.trim()).filter(Boolean);
+
+        const newProject = {
+          id: 'custom_' + Date.now(),
+          title,
+          description: desc,
+          tags: tags.length ? tags : ['Code', 'Project'],
+          githubUrl,
+          demoUrl,
+          image,
+          source: 'custom'
+        };
+
+        const currentList = getStoredProjects();
+        currentList.push(newProject);
+        saveStoredProjects(currentList);
+        renderPortfolioProjects();
+
+        showProjToast(`Proyek "${title}" berhasil ditambahkan ke portofolio!`);
+
+        // Beralih ke tab aktif
+        const activeTab = document.querySelector('.proj-m-tab[data-tab="active"]');
+        if (activeTab) activeTab.click();
+      });
+    }
+  })();
 
   // ---------- HERO INTERACTIVE GRID UX (mouse-following spotlight & tactile response) ----------
   (function initHeroGridUX() {
@@ -803,33 +1874,30 @@
         }, { passive: true });
       }
 
-      // Klik / Tap fox: salto/loncat lalu kembali ke rumput + efek +1 & dialog ala RPG
+      // Klik / Tap fox: salto lalu membuka game arcade
       let pxScore = 0;
       const pxLinesID = [
-        'Menyala abangkuh! Salto mulus.',
-        'Gacor kang! +1 aura points.',
-        'Spam terus wir, jangan kasih kendor!',
-        'Anjay salto 360 no scope!',
-        'Info loker atlet senam lantai kah?',
-        'Valid no debat, skill gw emang GG!',
-        'Waduh pusing pala barbie muter mulu.',
-        'Santai dulu gak sih, ngopi ngapa ngopi.'
+        'Ayo main game! Membuka arcade...',
+        'Menyala abangkuh! Masuk ke arcade...',
+        'Gacor kang! Membuka Fox Runner...',
+        'Gas main game! Salto dulu wir...'
       ];
       const pxLinesEN = [
-        'Bro really made me backflip.',
-        'Bro is cooking! +1000 aura.',
-        'Sheesh! Clean 360 flip!',
-        'Stop spamming me bruh!',
-        'Valid! Pure gamer instinct!',
-        'Gymnast fox in the house!',
-        'Dizzy mode activated.',
-        'Orange power never dies!'
+        'Launching Fox Runner arcade...',
+        'Bro is ready to play! Opening game...',
+        'Entering the arcade zone...',
+        'Flip and run! Starting game...'
       ];
       let pxIdx = 0;
       let saltoTimer = null;
 
       const triggerSalto = () => {
         pxScore++;
+
+        // Buka arcade game setelah salto dimulai
+        if (typeof window.openFoxGame === 'function') {
+          setTimeout(window.openFoxGame, 280);
+        }
 
         // Trigger animasi salto (loncat + putar balik + mendarat di rumput)
         if (foxChar) {

@@ -219,7 +219,7 @@
           </g>
         </svg>
         <div class="px-hit" id="pxHit">+1</div>
-        <div class="px-dialog" id="pxDialog">Halo! Aku Fox_404. Klik aku buat salto!</div>
+        <div class="px-dialog" id="pxDialog">Halo! Aku Fox_404. Klik aku buat main game!</div>
       </div>
     </div>
   </div>
@@ -418,9 +418,21 @@
 <!-- ========== PROJECTS ========== -->
 <section id="projects">
   <div class="container">
-    <div class="section-head reveal">
-      <div class="eyebrow" data-i18n="proj_eyebrow">Featured Projects</div>
-      <h2 data-i18n="proj_title">Beberapa karya yang saya bangun.</h2>
+    <div class="section-head reveal" style="max-width:100% !important; margin-bottom:clamp(20px, 3vw, 36px) !important;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; width:100%; flex-wrap:wrap; gap:14px;">
+        <div>
+          <div class="eyebrow" data-i18n="proj_eyebrow">Featured Projects</div>
+          <h2 data-i18n="proj_title">Beberapa karya yang saya bangun.</h2>
+        </div>
+        <button id="btnOpenProjManager" class="px-btn-manage" type="button" title="Buka Panel Pengelola Proyek" style="display:none;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <path d="M14 9h4m-4 4h4m-4 4h4"></path>
+          </svg>
+          <span>Kelola Proyek</span>
+        </button>
+      </div>
     </div>
 
     <div class="proj-grid">
@@ -466,7 +478,7 @@
         target="_blank"
         rel="noopener"
       >
-        Informatika - UIN Saizu
+        Informatika - Data
       </a>
     </h3>
 
@@ -702,9 +714,98 @@
 
 <footer>
   <div class="container footer-inner">
-    <p data-i18n="footer_rights">© 2026 Moch Dhaifan Al Qhadafy. Hak Cipta Dilindungi.</p>
+    <p id="footerSecretTrigger" data-i18n="footer_rights" style="cursor:pointer;" title="Klik 5x untuk verifikasi pemilik">© 2026 Moch Dhaifan Al Qhadafy. Hak Cipta Dilindungi.</p>
   </div>
 </footer>
+
+<!-- ========== RETRO ARCADE MODAL ========== -->
+<div class="game-modal" id="gameModal" role="dialog" aria-modal="true" aria-labelledby="gameModalTitle">
+  <div class="game-modal-backdrop" id="gameModalBackdrop"></div>
+  <div class="game-cabinet">
+    <!-- Header Kabinet Arcade -->
+    <div class="game-cabinet-header">
+      <div class="game-title-badge">
+        <svg class="arcade-head-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+          <path d="M6 12h4m-2-2v4m10-2h.01m-3-1h.01"></path>
+        </svg>
+        <span id="gameModalTitle">Fox Runner: Pixel Dash</span>
+      </div>
+      
+      <div class="game-cabinet-tools">
+        <button type="button" class="game-tool-btn" id="gameCrtToggle" title="Toggle CRT Filter" aria-pressed="false" aria-label="Toggle CRT Filter">
+          <span>CRT</span>
+        </button>
+        <button type="button" class="game-tool-btn" id="gameSoundToggle" title="Mute/Unmute Suara" aria-pressed="true" aria-label="Mute atau Unmute Suara">
+          <svg class="sound-on-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <svg class="sound-off-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+        <button type="button" class="game-tool-btn" id="gamePauseToggle" title="Jeda Game" aria-pressed="false" aria-label="Jeda Game">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+        </button>
+        <button type="button" class="game-tool-btn game-close-btn" id="gameModalClose" title="Tutup Game" aria-label="Tutup Game">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- HUD Bar (Skor, Terbaik, Level) -->
+    <div class="game-hud">
+      <div class="hud-item">
+        <span class="hud-label" data-i18n="game_score">Skor</span>
+        <span class="hud-val" id="gameScoreDisplay">00000</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label" data-i18n="game_best">Terbaik</span>
+        <span class="hud-val" id="gameHighScoreDisplay">00000</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label" data-i18n="game_level">Level</span>
+        <span class="hud-val hud-lvl" id="gameLevelDisplay">LVL 1</span>
+      </div>
+    </div>
+
+    <!-- Layar CRT & Canvas -->
+    <div class="arcade-screen-wrap">
+      <div class="crt-overlay"></div>
+      <canvas id="foxRunnerCanvas" width="800" height="400" aria-label="Game canvas Fox Runner"></canvas>
+    </div>
+
+    <!-- Kontrol Bawah Kabinet & Petunjuk Keyboard -->
+    <div class="game-cabinet-footer">
+      <div class="game-keys-hint">
+        <span class="key-badge">SPACE</span>
+        <span class="key-badge">UP</span>
+        <span class="hint-text" data-i18n="game_jump_hint">Lompat / Double Jump</span>
+        <span class="key-sep">•</span>
+        <span class="key-badge">P</span>
+        <span class="hint-text" data-i18n="game_pause">Jeda</span>
+        <span class="key-sep">•</span>
+        <span class="key-badge">ESC</span>
+        <span class="hint-text">Keluar</span>
+      </div>
+
+      <div class="game-mobile-controls">
+        <button type="button" class="game-jump-pad" id="gameMobileJump" aria-label="Lompat">
+          <span>JUMP</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ========== BACK TO TOP FLOATING BUTTON ========== -->
 <button class="back-to-top" id="backToTop" aria-label="Back to top" title="Kembali ke atas">
@@ -717,6 +818,88 @@
   </svg>
 </button>
 
+<!-- ========== ADMIN AUTH MODAL (PIN VERIFICATION) ========== -->
+<div class="proj-manager-modal" id="projAuthModal" role="dialog" aria-modal="true" aria-labelledby="projAuthTitle">
+  <div class="proj-manager-backdrop" id="projAuthBackdrop"></div>
+  <div class="proj-manager-box" style="max-width:440px;">
+    <div class="proj-manager-head">
+      <div class="proj-manager-title" id="projAuthTitle">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span class="proj-title-long">SECURITY_GATE.EXE // VERIFIKASI</span>
+        <span class="proj-title-short">SECURITY_GATE.EXE</span>
+      </div>
+      <button type="button" class="proj-manager-close" id="projAuthClose" title="Batal">[ X ]</button>
+    </div>
+    <div class="proj-manager-body" style="padding:22px 20px;">
+      <p style="font-family:var(--px-font); font-size:10px; color:var(--gray-600); line-height:1.6; margin-bottom:12px;">
+        Akses panel ini terbatas untuk pemilik portofolio. Silakan masukkan PIN Admin:
+      </p>
+      <form id="projAuthForm" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="proj-form-field">
+          <label>PIN ADMIN</label>
+          <input type="password" id="projAuthPin" maxlength="20" placeholder="Ketik PIN..." autocomplete="current-password" required style="font-size:18px; letter-spacing:4px; text-align:center;">
+        </div>
+        <div id="projAuthError" style="font-family:var(--px-font); font-size:9px; color:#dc2626; min-height:14px; text-align:center;"></div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+          <button type="button" class="proj-btn-action" id="btnCancelAuth">Batal</button>
+          <button type="submit" class="proj-btn-action proj-btn-primary">Buka Akses</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PROJECT MANAGER MODAL ========== -->
+<div class="proj-manager-modal" id="projManagerModal" role="dialog" aria-modal="true" aria-labelledby="projManagerTitle">
+  <div class="proj-manager-backdrop" id="projManagerBackdrop"></div>
+  <div class="proj-manager-box">
+    <!-- Header -->
+    <div class="proj-manager-head">
+      <div class="proj-manager-title" id="projManagerTitle">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
+        </svg>
+        <span class="proj-title-long">PROJECT_MANAGER.EXE // KELOLA PROYEK</span>
+        <span class="proj-title-short">PROJECT_MANAGER.EXE</span>
+      </div>
+      <button type="button" class="proj-manager-close" id="projManagerClose" title="Tutup Modal">[ X ]</button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="proj-manager-nav">
+      <button type="button" class="proj-m-tab active" data-tab="active">Proyek Aktif (<span id="activeProjCount">0</span>)</button>
+      <button type="button" class="proj-m-tab" data-tab="github">Pilih dari GitHub</button>
+      <button type="button" class="proj-m-tab" data-tab="create">+ Tambah Manual</button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="proj-manager-body" id="projManagerBody">
+      <!-- Diisi dinamis oleh script.js -->
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="proj-manager-foot">
+      <div style="font-family:var(--px-font); font-size:10px; color:var(--gray-600);" id="projManagerStatus">
+        Siap mengelola proyek
+      </div>
+      <div class="proj-manager-foot-actions">
+        <button type="button" class="proj-btn-action" id="btnChangePin" title="Ubah PIN akses admin">Ganti PIN</button>
+        <button type="button" class="proj-btn-action" id="btnResetProjects" title="Kembalikan ke proyek bawaan">Reset ke Bawaan</button>
+        <button type="button" class="proj-btn-action" id="btnExportProjects" title="Salin data proyek JSON">Salin JSON</button>
+        <button type="button" class="proj-btn-action proj-btn-primary" id="btnCloseProjManager">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="proj-toast" id="projToast">Pemberitahuan</div>
+
 <script src="script.js" defer></script>
+<script src="game.js" defer></script>
 </body>
 </html>
