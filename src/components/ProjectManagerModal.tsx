@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Project, GitHubRepo } from '../types';
 import { DEFAULT_PORTFOLIO_PROJECTS } from '../constants/translations';
 
@@ -9,22 +9,129 @@ interface ProjectManagerModalProps {
   onCloseManager: () => void;
   projects: Project[];
   onUpdateProjects: (updated: Project[]) => void;
+  onUnlock?: () => void;
   showToast: (msg: string) => void;
 }
 
-const DEFAULT_PIN_HASH = '158a323a7ba44870f23d96f1516dd70aa48e9a72db4ebb026b0a89e212a208ab'; // SHA-256 for '2026'
+// SHA-256 for admin PIN: '201007'
+const DEFAULT_PIN_HASH = '707ff98bce3074eaf5e77a679353b1091999b5b76b7e5f1d4c26f10a04b62107';
+
+/**
+ * Pure JS SHA-256 fallback algorithm to guarantee consistent cryptographic hashing
+ * even on insecure origins (HTTP local IPs) where crypto.subtle is restricted.
+ */
+function pureSha256(ascii: string): string {
+  function rightRotate(value: number, amount: number) {
+    return (value >>> amount) | (value << (32 - amount));
+  }
+  const asciiBitLength = ascii.length * 8;
+  const words: number[] = [];
+  const hash = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+  const k = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+  ];
+
+  for (let i = 0; i < asciiBitLength; i += 8) {
+    words[i >> 5] |= (ascii.charCodeAt(i / 8) & 0xff) << (24 - (i % 32));
+  }
+  words[asciiBitLength >> 5] |= 0x80 << (24 - (asciiBitLength % 32));
+  words[(((asciiBitLength + 64) >> 9) << 4) + 15] = asciiBitLength;
+
+  const w = new Array(64);
+  for (let i = 0; i < words.length; i += 16) {
+    let [a, b, c, d, e, f, g, h] = hash;
+    for (let j = 0; j < 64; j++) {
+      if (j < 16) {
+        w[j] = words[i + j] | 0;
+      } else {
+        const gamma0 = rightRotate(w[j - 15], 7) ^ rightRotate(w[j - 15], 18) ^ (w[j - 15] >>> 3);
+        const gamma1 = rightRotate(w[j - 2], 17) ^ rightRotate(w[j - 2], 19) ^ (w[j - 2] >>> 10);
+        w[j] = (w[j - 16] + gamma0 + w[j - 7] + gamma1) | 0;
+      }
+      const ch = (e & f) ^ (~e & g);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const sigma0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
+      const sigma1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
+      const t1 = (h + sigma1 + ch + k[j] + w[j]) | 0;
+      const t2 = (sigma0 + maj) | 0;
+      h = g;
+      g = f;
+      f = e;
+      e = (d + t1) | 0;
+      d = c;
+      c = b;
+      b = a;
+      a = (t1 + t2) | 0;
+    }
+    hash[0] = (hash[0] + a) | 0;
+    hash[1] = (hash[1] + b) | 0;
+    hash[2] = (hash[2] + c) | 0;
+    hash[3] = (hash[3] + d) | 0;
+    hash[4] = (hash[4] + e) | 0;
+    hash[5] = (hash[5] + f) | 0;
+    hash[6] = (hash[6] + g) | 0;
+    hash[7] = (hash[7] + h) | 0;
+  }
+
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    for (let j = 3; j >= 0; j--) {
+      const byte = (hash[i] >> (8 * j)) & 255;
+      result += (byte < 16 ? '0' : '') + byte.toString(16);
+    }
+  }
+  return result;
+}
 
 async function hashPin(pin: string): Promise<string> {
-  if (window.crypto && window.crypto.subtle) {
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
     try {
       const buf = new TextEncoder().encode(pin);
       const hash = await crypto.subtle.digest('SHA-256', buf);
       return Array.from(new Uint8Array(hash))
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
-    } catch (e) {}
+    } catch (e) {
+      // Fallback if subtle digest fails
+    }
   }
-  return 'fallback_' + pin;
+  return pureSha256(pin);
+}
+
+/** URL Sanitizer: adds https:// if protocol is omitted */
+function sanitizeUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+/** Check if string is a valid HTTP/HTTPS URL */
+function isValidHttpUrl(str: string): boolean {
+  if (!str) return true; // Optional URL is valid when empty
+  try {
+    const url = new URL(str);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (_) {
+    return false;
+  }
+}
+
+/** Normalize image path so static assets and external/data URLs display cleanly */
+function normalizeImagePath(src: string): string {
+  if (!src) return '';
+  const s = src.trim();
+  if (s.startsWith('http://') || s.startsWith('https://') || s.startsWith('data:') || s.startsWith('/')) {
+    return s;
+  }
+  return '/' + s;
 }
 
 export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
@@ -34,11 +141,13 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   onCloseManager,
   projects,
   onUpdateProjects,
+  onUnlock,
   showToast
 }) => {
   // Auth state
   const [pinInput, setPinInput] = useState('');
   const [authError, setAuthError] = useState('');
+  const pinInputRef = useRef<HTMLInputElement>(null);
 
   // Manager state
   const [activeTab, setActiveTab] = useState<'active' | 'github' | 'create'>('active');
@@ -55,7 +164,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   const [newGithub, setNewGithub] = useState('');
   const [newDemo, setNewDemo] = useState('');
   const [newImage, setNewImage] = useState('');
-  const [newTags, setNewTags] = useState<string[]>(['React', 'JavaScript']);
+  const [newTags, setNewTags] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState('');
 
   // Edit project state
@@ -67,49 +176,90 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   const [editTags, setEditTags] = useState<string[]>([]);
   const [editTagInput, setEditTagInput] = useState('');
 
-  // Image compression helper
+  // Reset auth input on modal open
+  useEffect(() => {
+    if (isAuthOpen) {
+      setPinInput('');
+      setAuthError('');
+      setTimeout(() => pinInputRef.current?.focus(), 50);
+    }
+  }, [isAuthOpen]);
+
+  // Reset edit state when manager modal closes
+  useEffect(() => {
+    if (!isManagerOpen) {
+      setEditingProjId(null);
+    }
+  }, [isManagerOpen]);
+
+  // Image compression & validation helper
   const compressImage = (file: File, callback: (dataUrl: string) => void) => {
-    if (!file || !file.type.startsWith('image/')) return;
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Gagal: File harus berupa gambar.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Gagal: Ukuran file maksimal 10MB.');
+      return;
+    }
+
     const reader = new FileReader();
+    reader.onerror = () => {
+      showToast('Gagal membaca file gambar.');
+    };
     reader.onload = (e) => {
       const raw = e.target?.result as string;
+      if (!raw) return;
+
       const img = new Image();
       img.onload = () => {
-        const maxDim = 800;
-        let w = img.width;
-        let h = img.height;
-        if (w > maxDim || h > maxDim) {
-          if (w > h) {
-            h = Math.round((h * maxDim) / w);
-            w = maxDim;
-          } else {
-            w = Math.round((w * maxDim) / h);
-            h = maxDim;
+        try {
+          const maxDim = 800;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
           }
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, w, h);
-          const compressed = canvas.toDataURL('image/jpeg', 0.82);
-          callback(compressed);
-        } else {
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, w);
+          canvas.height = Math.max(1, h);
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            const compressed = canvas.toDataURL('image/jpeg', 0.82);
+            callback(compressed);
+            showToast('Gambar berhasil diunggah.');
+          } else {
+            callback(raw);
+          }
+        } catch (err) {
+          console.error(err);
           callback(raw);
         }
       };
-      img.onerror = () => callback(raw);
+      img.onerror = () => {
+        showToast('Format gambar rusak atau tidak didukung.');
+      };
       img.src = raw;
     };
     reader.readAsDataURL(file);
   };
 
-  // Auth handler
+  // Auth form submit
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const pin = pinInput.trim();
-    if (!pin) return;
+    if (!pin) {
+      setAuthError('PIN tidak boleh kosong.');
+      return;
+    }
 
     const hashed = await hashPin(pin);
     const storedHash = localStorage.getItem('portfolio_admin_pin_hash') || DEFAULT_PIN_HASH;
@@ -118,14 +268,14 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       setPinInput('');
       setAuthError('');
       onCloseAuth();
+      if (onUnlock) {
+        onUnlock();
+      }
       showToast('Akses pemilik terverifikasi.');
-      // Open manager
-      // Trigger parent callback via props
-      const openBtn = document.getElementById('btnOpenProjManager');
-      if (openBtn) openBtn.click();
     } else {
       setAuthError('AKSES DITOLAK: PIN SALAH.');
       setPinInput('');
+      setTimeout(() => pinInputRef.current?.focus(), 50);
     }
   };
 
@@ -139,7 +289,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       const data = await res.json();
       setGithubRepos(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      setGhError('Gagal menghubungi GitHub API: ' + (err?.message || 'Error'));
+      setGhError('Gagal memuat dari GitHub: ' + (err?.message || 'Error'));
     } finally {
       setGhLoading(false);
     }
@@ -151,6 +301,31 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     }
   }, [isManagerOpen, activeTab]);
 
+  // Helper for adding user-inputted tags (supports Enter or comma-separated)
+  const addTags = (
+    rawInput: string,
+    currentTags: string[],
+    setTags: (tags: string[]) => void,
+    clearInput: () => void
+  ) => {
+    const tokens = rawInput
+      .split(/[,，]/)
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0 && t.length <= 30);
+
+    if (tokens.length === 0) return;
+
+    const merged = [...currentTags];
+    for (const tok of tokens) {
+      if (!merged.includes(tok)) {
+        merged.push(tok);
+      }
+    }
+    setTags(merged);
+    clearInput();
+  };
+
+  // Start editing a project
   const handleStartEdit = (proj: Project) => {
     setEditingProjId(proj.id);
     setEditTitle(proj.title);
@@ -159,22 +334,50 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     setEditDemo(proj.demoUrl || '');
     setEditImage(proj.image || '');
     setEditTags(Array.isArray(proj.tags) ? [...proj.tags] : []);
+    setEditTagInput('');
   };
 
+  // Save edited project with validation
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProjId) return;
+
+    const title = editTitle.trim();
+    const desc = editDesc.trim();
+
+    if (!title) {
+      showToast('Gagal: Nama proyek tidak boleh kosong.');
+      return;
+    }
+    if (!desc) {
+      showToast('Gagal: Deskripsi proyek tidak boleh kosong.');
+      return;
+    }
+
+    const cleanGithub = sanitizeUrl(editGithub);
+    const cleanDemo = sanitizeUrl(editDemo);
+
+    if (cleanGithub && !isValidHttpUrl(cleanGithub)) {
+      showToast('Tautan GitHub tidak valid (contoh: https://github.com/user/repo).');
+      return;
+    }
+    if (cleanDemo && !isValidHttpUrl(cleanDemo)) {
+      showToast('Tautan Demo tidak valid (contoh: https://domain.com).');
+      return;
+    }
+
+    const cleanTags = editTags.length > 0 ? editTags : ['Project'];
 
     const updated = projects.map((p) => {
       if (p.id === editingProjId) {
         return {
           ...p,
-          title: editTitle.trim(),
-          description: editDesc.trim(),
-          githubUrl: editGithub.trim(),
-          demoUrl: editDemo.trim(),
+          title,
+          description: desc,
+          githubUrl: cleanGithub,
+          demoUrl: cleanDemo,
           image: editImage.trim(),
-          tags: editTags.length ? editTags : ['Project']
+          tags: cleanTags
         };
       }
       return p;
@@ -182,46 +385,87 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
 
     onUpdateProjects(updated);
     setEditingProjId(null);
-    showToast(`Perubahan proyek "${editTitle}" berhasil disimpan!`);
+    showToast(`Perubahan "${title}" berhasil disimpan!`);
   };
 
+  // Delete project
   const handleDelete = (proj: Project) => {
-    if (confirm(`Hapus proyek "${proj.title}" dari portofolio?`)) {
+    if (confirm(`Hapus proyek "${proj.title}" dari portofolio? Tindakan ini dapat dibatalkan dengan "Reset ke Bawaan".`)) {
       const updated = projects.filter((p) => p.id !== proj.id);
       onUpdateProjects(updated);
       showToast(`Proyek "${proj.title}" telah dihapus.`);
     }
   };
 
+  // Create manual project with validation
   const handleAddManual = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newDesc.trim()) return;
+    const title = newTitle.trim();
+    const desc = newDesc.trim();
+
+    if (!title) {
+      showToast('Gagal: Nama proyek wajib diisi.');
+      return;
+    }
+    if (!desc) {
+      showToast('Gagal: Deskripsi proyek wajib diisi.');
+      return;
+    }
+
+    const cleanGithub = sanitizeUrl(newGithub);
+    const cleanDemo = sanitizeUrl(newDemo);
+
+    if (cleanGithub && !isValidHttpUrl(cleanGithub)) {
+      showToast('Tautan GitHub tidak valid (contoh: https://github.com/user/repo).');
+      return;
+    }
+    if (cleanDemo && !isValidHttpUrl(cleanDemo)) {
+      showToast('Tautan Demo tidak valid (contoh: https://domain.com).');
+      return;
+    }
+
+    const cleanTags = newTags.length > 0 ? newTags : ['Project'];
 
     const newProj: Project = {
       id: 'custom_' + Date.now(),
-      title: newTitle.trim(),
-      description: newDesc.trim(),
-      githubUrl: newGithub.trim(),
-      demoUrl: newDemo.trim(),
+      title,
+      description: desc,
+      githubUrl: cleanGithub,
+      demoUrl: cleanDemo,
       image: newImage.trim(),
-      tags: newTags.length ? newTags : ['Code', 'Project'],
+      tags: cleanTags,
       source: 'custom'
     };
 
     onUpdateProjects([...projects, newProj]);
-    showToast(`Proyek "${newTitle}" berhasil ditambahkan!`);
+    showToast(`Proyek "${title}" berhasil ditambahkan!`);
+
     // Reset form
     setNewTitle('');
     setNewDesc('');
     setNewGithub('');
     setNewDemo('');
     setNewImage('');
-    setNewTags(['React', 'JavaScript']);
+    setNewTags([]);
+    setNewTagInput('');
     setActiveTab('active');
   };
 
+  // Add from GitHub with duplicate check
   const handleAddFromGitHub = (repo: GitHubRepo) => {
     const formattedTitle = repo.name.replace(/[-_]/g, ' ');
+    const exists = projects.some(
+      (p) =>
+        p.id === 'gh_' + repo.name ||
+        (p.repoName && p.repoName.toLowerCase() === repo.name.toLowerCase()) ||
+        p.title.toLowerCase().replace(/[^a-z0-9]/g, '') === formattedTitle.toLowerCase().replace(/[^a-z0-9]/g, '')
+    );
+
+    if (exists) {
+      showToast(`Proyek "${formattedTitle}" sudah ada di portofolio!`);
+      return;
+    }
+
     const descText = repo.description || `Proyek repositori open-source ${repo.name} oleh Komouy.`;
     const langText = repo.language || 'Code';
 
@@ -238,93 +482,108 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     };
 
     onUpdateProjects([...projects, newProj]);
-    showToast(`Proyek "${formattedTitle}" berhasil dimasukkan ke portofolio!`);
+    showToast(`Proyek "${formattedTitle}" berhasil dimasukkan!`);
   };
 
+  // Change Admin PIN with validation
   const handleChangePin = async () => {
     const currentPin = prompt('Masukkan PIN lama:');
-    if (!currentPin) return;
-    const hashedCurrent = await hashPin(currentPin.trim());
-    const storedHash = localStorage.getItem('portfolio_admin_pin_hash') || DEFAULT_PIN_HASH;
-
-    if (hashedCurrent !== storedHash) {
-      alert('PIN lama salah!');
+    if (currentPin === null) return;
+    const trimmedOld = currentPin.trim();
+    if (!trimmedOld) {
+      alert('PIN lama tidak boleh kosong!');
       return;
     }
 
-    const newPin = prompt('Masukkan PIN baru (minimal 4 karakter):');
-    if (!newPin || newPin.trim().length < 4) {
-      alert('PIN baru tidak boleh kosong dan minimal 4 karakter!');
+    const hashedCurrent = await hashPin(trimmedOld);
+    const storedHash = localStorage.getItem('portfolio_admin_pin_hash') || DEFAULT_PIN_HASH;
+
+    if (hashedCurrent !== storedHash) {
+      alert('PIN lama salah! Akses ditolak.');
+      return;
+    }
+
+    const newPin = prompt('Masukkan PIN baru (minimal 4 karakter, disarankan angka):');
+    if (newPin === null) return;
+    const trimmedNew = newPin.trim();
+    if (!trimmedNew || trimmedNew.length < 4) {
+      alert('PIN baru tidak valid! Minimal 4 karakter.');
       return;
     }
 
     const confirmPin = prompt('Ketik ulang PIN baru untuk konfirmasi:');
-    if (!confirmPin || newPin.trim() !== confirmPin.trim()) {
+    if (confirmPin === null) return;
+    if (trimmedNew !== confirmPin.trim()) {
       alert('Konfirmasi PIN tidak cocok!');
       return;
     }
 
-    const hashedNew = await hashPin(newPin.trim());
+    const hashedNew = await hashPin(trimmedNew);
     localStorage.setItem('portfolio_admin_pin_hash', hashedNew);
-    showToast('PIN Admin berhasil diubah!');
+    showToast('PIN Admin berhasil diperbarui!');
   };
 
+  // Reset to default projects safely
   const handleResetToDefault = () => {
-    if (confirm('Kembalikan daftar proyek ke 5 proyek bawaan?')) {
-      onUpdateProjects(DEFAULT_PORTFOLIO_PROJECTS);
-      showToast('Daftar proyek berhasil dikembalikan ke bawaan!');
+    if (confirm('Kembalikan daftar proyek ke 5 proyek bawaan portofolio? Semua perubahan kustom akan direset.')) {
+      const cloned = JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO_PROJECTS));
+      onUpdateProjects(cloned);
+      showToast('Daftar proyek dikembalikan ke bawaan!');
     }
   };
 
+  // Copy JSON
   const handleExportJson = () => {
-    const json = JSON.stringify(projects, null, 2);
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard
-        .writeText(json)
-        .then(() => showToast('Data JSON proyek berhasil disalin ke clipboard!'))
-        .catch(() => prompt('Salin teks JSON berikut:', json));
-    } else {
-      prompt('Salin teks JSON berikut:', json);
+    try {
+      const json = JSON.stringify(projects, null, 2);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+          .writeText(json)
+          .then(() => showToast('Data JSON proyek berhasil disalin!'))
+          .catch(() => prompt('Salin teks JSON berikut:', json));
+      } else {
+        prompt('Salin teks JSON berikut:', json);
+      }
+    } catch (e) {
+      showToast('Gagal mengekspor data JSON proyek.');
     }
   };
-
-  const quickTagChoices = ['JavaScript', 'TypeScript', 'React', 'Next.js', 'Node.js', 'Python', 'Laravel', 'Tailwind', 'Canvas', 'AI / ML'];
 
   return (
     <>
-      {/* 1. AUTH MODAL */}
+      {/* 1. AUTH MODAL (SECURITY GATE) */}
       {isAuthOpen && (
-        <div className="proj-manager-modal active" id="projAuthModal" role="dialog" aria-modal="true">
+        <div className="proj-manager-modal active" id="projAuthModal" role="dialog" aria-modal="true" aria-labelledby="authGateTitle">
           <div className="proj-manager-backdrop" onClick={onCloseAuth}></div>
-          <div className="proj-manager-box" style={{ maxWidth: '440px' }}>
+          <div className="proj-manager-box" style={{ maxWidth: '420px' }}>
             <div className="proj-manager-head">
-              <div className="proj-manager-title">
+              <div className="proj-manager-title" id="authGateTitle">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
-                <span className="proj-title-long">SECURITY_GATE.EXE // VERIFIKASI</span>
-                <span className="proj-title-short">SECURITY_GATE.EXE</span>
+                <span>VERIFIKASI PEMILIK</span>
               </div>
-              <button type="button" className="proj-manager-close" onClick={onCloseAuth}>
+              <button type="button" className="proj-manager-close" onClick={onCloseAuth} aria-label="Tutup">
                 [ X ]
               </button>
             </div>
-            <div className="proj-manager-body" style={{ padding: '22px 20px' }}>
+            <div className="proj-manager-body" style={{ padding: '20px' }}>
               <p style={{ fontFamily: 'var(--px-font)', fontSize: '10px', color: 'var(--gray-600)', lineHeight: 1.6, marginBottom: '12px' }}>
-                Akses panel ini terbatas untuk pemilik portofolio. Silakan masukkan PIN Admin (bawaan: 2026):
+                Masukkan PIN Admin untuk mengelola portofolio:
               </p>
               <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div className="proj-form-field">
-                  <label>PIN ADMIN</label>
+                  <label htmlFor="projAuthPinInput">PIN ADMIN</label>
                   <input
+                    ref={pinInputRef}
+                    id="projAuthPinInput"
                     type="password"
                     maxLength={20}
-                    placeholder="Ketik PIN..."
+                    placeholder="••••••"
                     required
                     value={pinInput}
                     onChange={(e) => setPinInput(e.target.value)}
-                    autoFocus
                     style={{ fontSize: '18px', letterSpacing: '4px', textAlign: 'center' }}
                   />
                 </div>
@@ -333,7 +592,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                     {authError}
                   </div>
                 )}
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '6px' }}>
                   <button type="button" className="proj-btn-action" onClick={onCloseAuth}>
                     Batal
                   </button>
@@ -349,12 +608,12 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
 
       {/* 2. PROJECT MANAGER MODAL */}
       {isManagerOpen && (
-        <div className="proj-manager-modal active" id="projManagerModal" role="dialog" aria-modal="true">
+        <div className="proj-manager-modal active" id="projManagerModal" role="dialog" aria-modal="true" aria-labelledby="projManagerTitle">
           <div className="proj-manager-backdrop" onClick={onCloseManager}></div>
           <div className="proj-manager-box">
             {/* Header */}
             <div className="proj-manager-head">
-              <div className="proj-manager-title">
+              <div className="proj-manager-title" id="projManagerTitle">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
                   <line x1="8" y1="21" x2="16" y2="21"></line>
@@ -363,7 +622,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                 <span className="proj-title-long">PROJECT_MANAGER.EXE // KELOLA PROYEK</span>
                 <span className="proj-title-short">PROJECT_MANAGER.EXE</span>
               </div>
-              <button type="button" className="proj-manager-close" onClick={onCloseManager}>
+              <button type="button" className="proj-manager-close" onClick={onCloseManager} aria-label="Tutup">
                 [ X ]
               </button>
             </div>
@@ -427,25 +686,27 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                         {editingProjId === proj.id ? (
                           /* EDIT MODE */
                           <div>
-                            <div style={{ fontFamily: 'var(--px-font)', fontSize: '11px', color: 'var(--orange-deep)', marginBottom: '4px' }}>
-                              [ EDIT PROYEK #{idx + 1} ]
+                            <div style={{ fontFamily: 'var(--px-font)', fontSize: '11px', color: 'var(--orange-deep)', marginBottom: '8px' }}>
+                              [ EDIT PROYEK #{idx + 1} : {proj.title} ]
                             </div>
                             <form className="proj-form-grid" onSubmit={handleSaveEdit}>
                               <div className="proj-form-field">
-                                <label>NAMA PROYEK</label>
+                                <label>NAMA PROYEK *</label>
                                 <input
                                   type="text"
                                   value={editTitle}
                                   onChange={(e) => setEditTitle(e.target.value)}
+                                  placeholder="Nama proyek..."
                                   required
                                 />
                               </div>
                               <div className="proj-form-field">
-                                <label>DESKRIPSI PROYEK</label>
+                                <label>DESKRIPSI PROYEK *</label>
                                 <textarea
                                   rows={3}
                                   value={editDesc}
                                   onChange={(e) => setEditDesc(e.target.value)}
+                                  placeholder="Deskripsi detail proyek..."
                                   required
                                 />
                               </div>
@@ -453,16 +714,18 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                                 <div className="proj-form-field">
                                   <label>TAUTAN GITHUB</label>
                                   <input
-                                    type="url"
+                                    type="text"
+                                    inputMode="url"
                                     value={editGithub}
                                     onChange={(e) => setEditGithub(e.target.value)}
                                     placeholder="https://github.com/..."
                                   />
                                 </div>
                                 <div className="proj-form-field">
-                                  <label>TAUTAN DEMO</label>
+                                  <label>TAUTAN DEMO / WEBSITE</label>
                                   <input
-                                    type="url"
+                                    type="text"
+                                    inputMode="url"
                                     value={editDemo}
                                     onChange={(e) => setEditDemo(e.target.value)}
                                     placeholder="https://..."
@@ -470,70 +733,50 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                                 </div>
                               </div>
 
-                              {/* Tag manager */}
+                              {/* Tag manager - Simple & Manual Input */}
                               <div className="proj-form-field">
                                 <label>TAG TEKNOLOGI</label>
                                 <div className="proj-tags-manager">
                                   <div className="proj-tags-chips-list">
-                                    {editTags.map((t, tIdx) => (
-                                      <span key={tIdx} className="proj-tag-chip">
-                                        <span className="proj-tag-text">{t}</span>
-                                        <button
-                                          type="button"
-                                          className="proj-tag-del-btn"
-                                          onClick={() => setEditTags(editTags.filter((_, i) => i !== tIdx))}
-                                        >
-                                          &times;
-                                        </button>
-                                      </span>
-                                    ))}
+                                    {editTags.length === 0 ? (
+                                      <span className="proj-tag-empty-hint">Belum ada tag. Ketik di bawah untuk menambahkan.</span>
+                                    ) : (
+                                      editTags.map((t, tIdx) => (
+                                        <span key={tIdx} className="proj-tag-chip">
+                                          <span className="proj-tag-text">{t}</span>
+                                          <button
+                                            type="button"
+                                            className="proj-tag-del-btn"
+                                            onClick={() => setEditTags(editTags.filter((_, i) => i !== tIdx))}
+                                            aria-label={`Hapus tag ${t}`}
+                                          >
+                                            &times;
+                                          </button>
+                                        </span>
+                                      ))
+                                    )}
                                   </div>
                                   <div className="proj-tag-input-row">
                                     <input
                                       type="text"
                                       className="proj-tag-new-input"
-                                      placeholder="Ketik tag lalu tekan Enter..."
+                                      placeholder="Ketik tag lalu tekan Enter (atau pisahkan dengan koma)..."
                                       value={editTagInput}
                                       onChange={(e) => setEditTagInput(e.target.value)}
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                           e.preventDefault();
-                                          if (editTagInput.trim() && !editTags.includes(editTagInput.trim())) {
-                                            setEditTags([...editTags, editTagInput.trim()]);
-                                            setEditTagInput('');
-                                          }
+                                          addTags(editTagInput, editTags, setEditTags, () => setEditTagInput(''));
                                         }
                                       }}
                                     />
                                     <button
                                       type="button"
                                       className="proj-btn-action proj-btn-primary proj-btn-add-tag"
-                                      onClick={() => {
-                                        if (editTagInput.trim() && !editTags.includes(editTagInput.trim())) {
-                                          setEditTags([...editTags, editTagInput.trim()]);
-                                          setEditTagInput('');
-                                        }
-                                      }}
+                                      onClick={() => addTags(editTagInput, editTags, setEditTags, () => setEditTagInput(''))}
                                     >
                                       + Tambah
                                     </button>
-                                  </div>
-                                  <div className="proj-tags-suggest">
-                                    <span className="proj-tags-suggest-label">Pilihan Cepat:</span>
-                                    <div className="proj-tags-suggest-chips">
-                                      {quickTagChoices.map((q) => (
-                                        <button
-                                          key={q}
-                                          type="button"
-                                          className="proj-tag-quick"
-                                          onClick={() => {
-                                            if (!editTags.includes(q)) setEditTags([...editTags, q]);
-                                          }}
-                                        >
-                                          +{q}
-                                        </button>
-                                      ))}
-                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -557,22 +800,28 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                                       onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (file) compressImage(file, (data) => setEditImage(data));
+                                        e.target.value = ''; // Reset
                                       }}
                                     />
                                   </label>
                                 </div>
                                 {editImage && (
-                                  <div className="proj-upload-preview-bar" style={{ display: 'flex' }}>
+                                  <div className="proj-upload-preview-bar">
                                     <div className="proj-upload-thumb">
-                                      <img src={editImage} alt="Preview Cover" />
+                                      <img
+                                        src={normalizeImagePath(editImage)}
+                                        alt="Preview Cover"
+                                        onError={(e) => {
+                                          (e.currentTarget as HTMLImageElement).style.opacity = '0.4';
+                                        }}
+                                      />
                                     </div>
                                     <div className="proj-upload-info">
-                                      <span className="proj-upload-filename">Gambar aktif</span>
+                                      <span className="proj-upload-filename">Gambar aktif terpasang</span>
                                       <button
                                         type="button"
-                                        className="proj-btn-action proj-btn-delete"
+                                        className="proj-btn-action proj-btn-delete proj-btn-sm"
                                         onClick={() => setEditImage('')}
-                                        style={{ height: '26px !important', padding: '0 8px !important', fontSize: '9px !important' }}
                                       >
                                         Hapus Gambar
                                       </button>
@@ -601,12 +850,15 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                                 </span>
                                 {proj.demoUrl && <span className="proj-list-badge" style={{ marginLeft: '6px' }}>DEMO</span>}
                                 {proj.githubUrl && <span className="proj-list-badge" style={{ marginLeft: '4px', background: 'var(--ink)' }}>GIT</span>}
+                                {proj.source === 'github' && (
+                                  <span className="proj-list-badge proj-badge-dark" style={{ marginLeft: '4px' }}>GH REPO</span>
+                                )}
                               </div>
                               <div className="proj-list-actions">
-                                <button type="button" className="proj-btn-action btn-edit" onClick={() => handleStartEdit(proj)}>
+                                <button type="button" className="proj-btn-action proj-btn-sm btn-edit" onClick={() => handleStartEdit(proj)}>
                                   Edit
                                 </button>
-                                <button type="button" className="proj-btn-action proj-btn-delete btn-delete" onClick={() => handleDelete(proj)}>
+                                <button type="button" className="proj-btn-action proj-btn-delete proj-btn-sm btn-delete" onClick={() => handleDelete(proj)}>
                                   Hapus
                                 </button>
                               </div>
@@ -638,8 +890,8 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                       </svg>
                       <span>REPOSITORI PUBLIK GITHUB (@Komouy)</span>
                     </div>
-                    <button type="button" className="proj-btn-action" onClick={fetchGitHub}>
-                      Segarkan Data
+                    <button type="button" className="proj-btn-action" onClick={fetchGitHub} disabled={ghLoading}>
+                      {ghLoading ? 'Memuat...' : 'Segarkan Data'}
                     </button>
                   </div>
 
@@ -653,7 +905,10 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
 
                   {ghError && (
                     <div style={{ textAlign: 'center', padding: '24px 16px', color: '#dc2626' }}>
-                      {ghError}
+                      <div style={{ marginBottom: '8px' }}>{ghError}</div>
+                      <button type="button" className="proj-btn-action proj-btn-primary" onClick={fetchGitHub}>
+                        Coba Lagi
+                      </button>
                     </div>
                   )}
 
@@ -681,11 +936,11 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                                 </div>
                                 <div>
                                   {isAlreadyActive ? (
-                                    <span className="proj-list-badge badge-active">[ SUDAH AKTIF DI PORTO ]</span>
+                                    <span className="proj-list-badge badge-active">[ SUDAH AKTIF ]</span>
                                   ) : (
                                     <button
                                       type="button"
-                                      className="proj-btn-action proj-btn-primary"
+                                      className="proj-btn-action proj-btn-primary proj-btn-sm"
                                       onClick={() => handleAddFromGitHub(repo)}
                                     >
                                       + Masukkan ke Porto
@@ -721,7 +976,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                       <label>NAMA PROYEK *</label>
                       <input
                         type="text"
-                        placeholder="Contoh: Super AI Chatbot"
+                        placeholder="Masukan Nama..."
                         value={newTitle}
                         onChange={(e) => setNewTitle(e.target.value)}
                         required
@@ -741,7 +996,8 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                       <div className="proj-form-field">
                         <label>TAUTAN GITHUB (OPSIONAL)</label>
                         <input
-                          type="url"
+                          type="text"
+                          inputMode="url"
                           placeholder="https://github.com/..."
                           value={newGithub}
                           onChange={(e) => setNewGithub(e.target.value)}
@@ -750,7 +1006,8 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                       <div className="proj-form-field">
                         <label>TAUTAN DEMO / WEBSITE (OPSIONAL)</label>
                         <input
-                          type="url"
+                          type="text"
+                          inputMode="url"
                           placeholder="https://..."
                           value={newDemo}
                           onChange={(e) => setNewDemo(e.target.value)}
@@ -758,69 +1015,50 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                       </div>
                     </div>
 
+                    {/* Tag manager - Simple & Manual Input */}
                     <div className="proj-form-field">
                       <label>TAG TEKNOLOGI</label>
                       <div className="proj-tags-manager">
                         <div className="proj-tags-chips-list">
-                          {newTags.map((t, idx) => (
-                            <span key={idx} className="proj-tag-chip">
-                              <span className="proj-tag-text">{t}</span>
-                              <button
-                                type="button"
-                                className="proj-tag-del-btn"
-                                onClick={() => setNewTags(newTags.filter((_, i) => i !== idx))}
-                              >
-                                &times;
-                              </button>
-                            </span>
-                          ))}
+                          {newTags.length === 0 ? (
+                            <span className="proj-tag-empty-hint">Belum ada tag. Ketik di bawah untuk menambahkan.</span>
+                          ) : (
+                            newTags.map((t, idx) => (
+                              <span key={idx} className="proj-tag-chip">
+                                <span className="proj-tag-text">{t}</span>
+                                <button
+                                  type="button"
+                                  className="proj-tag-del-btn"
+                                  onClick={() => setNewTags(newTags.filter((_, i) => i !== idx))}
+                                  aria-label={`Hapus tag ${t}`}
+                                >
+                                  &times;
+                                </button>
+                              </span>
+                            ))
+                          )}
                         </div>
                         <div className="proj-tag-input-row">
                           <input
                             type="text"
                             className="proj-tag-new-input"
-                            placeholder="Ketik tag lalu tekan Enter..."
+                            placeholder="Pisahkan dengan koma..."
                             value={newTagInput}
                             onChange={(e) => setNewTagInput(e.target.value)}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
                                 e.preventDefault();
-                                if (newTagInput.trim() && !newTags.includes(newTagInput.trim())) {
-                                  setNewTags([...newTags, newTagInput.trim()]);
-                                  setNewTagInput('');
-                                }
+                                addTags(newTagInput, newTags, setNewTags, () => setNewTagInput(''));
                               }
                             }}
                           />
                           <button
                             type="button"
                             className="proj-btn-action proj-btn-primary proj-btn-add-tag"
-                            onClick={() => {
-                              if (newTagInput.trim() && !newTags.includes(newTagInput.trim())) {
-                                setNewTags([...newTags, newTagInput.trim()]);
-                                setNewTagInput('');
-                              }
-                            }}
+                            onClick={() => addTags(newTagInput, newTags, setNewTags, () => setNewTagInput(''))}
                           >
                             + Tambah
                           </button>
-                        </div>
-                        <div className="proj-tags-suggest">
-                          <span className="proj-tags-suggest-label">Pilihan Cepat:</span>
-                          <div className="proj-tags-suggest-chips">
-                            {quickTagChoices.map((q) => (
-                              <button
-                                key={q}
-                                type="button"
-                                className="proj-tag-quick"
-                                onClick={() => {
-                                  if (!newTags.includes(q)) setNewTags([...newTags, q]);
-                                }}
-                              >
-                                +{q}
-                              </button>
-                            ))}
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -830,7 +1068,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                       <div className="proj-upload-row">
                         <input
                           type="text"
-                          placeholder="nama-file.png, https://..., atau unggah file"
+                          placeholder="Pilih File atau Masukan Link Gambar..."
                           value={newImage}
                           onChange={(e) => setNewImage(e.target.value)}
                         />
@@ -843,22 +1081,28 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) compressImage(file, (data) => setNewImage(data));
+                              e.target.value = ''; // Reset
                             }}
                           />
                         </label>
                       </div>
                       {newImage && (
-                        <div className="proj-upload-preview-bar" style={{ display: 'flex' }}>
+                        <div className="proj-upload-preview-bar">
                           <div className="proj-upload-thumb">
-                            <img src={newImage} alt="Preview Cover" />
+                            <img
+                              src={normalizeImagePath(newImage)}
+                              alt="Preview Cover"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.opacity = '0.4';
+                              }}
+                            />
                           </div>
                           <div className="proj-upload-info">
-                            <span className="proj-upload-filename">Gambar aktif</span>
+                            <span className="proj-upload-filename">Gambar aktif terpasang</span>
                             <button
                               type="button"
-                              className="proj-btn-action proj-btn-delete"
+                              className="proj-btn-action proj-btn-delete proj-btn-sm"
                               onClick={() => setNewImage('')}
-                              style={{ height: '26px !important', padding: '0 8px !important', fontSize: '9px !important' }}
                             >
                               Hapus Gambar
                             </button>
@@ -880,7 +1124,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             {/* Footer */}
             <div className="proj-manager-foot">
               <div style={{ fontFamily: 'var(--px-font)', fontSize: '10px', color: 'var(--gray-600)' }}>
-                Siap mengelola proyek
+                Panel Pengelola Proyek
               </div>
               <div className="proj-manager-foot-actions">
                 <button type="button" className="proj-btn-action" onClick={handleChangePin} title="Ubah PIN akses admin">

@@ -208,11 +208,11 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
               <rect x="2" y="6" width="20" height="12" rx="2"></rect>
               <path d="M6 12h4m-2-2v4m10-2h.01m-3-1h.01"></path>
             </svg>
-            <span id="gameModalTitle">Fox Runner 3D: Pixel Dash</span>
+            <span id="gameModalTitle">FOXDASH</span>
           </div>
 
           <div className="game-cabinet-tools">
-            {/* LEADERBOARD BUTTON (Immediately to the left of CRT button) */}
+            {/* LEADERBOARD BUTTON */}
             <button
               type="button"
               className="game-tool-btn"
@@ -230,12 +230,16 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
               style={{
                 width: 'auto',
                 padding: '0 10px',
-                gap: '5px',
-                background: isLeaderboardOpen ? 'var(--orange)' : undefined,
-                color: isLeaderboardOpen ? '#ffffff' : undefined
+                gap: '6px',
+                background: isLeaderboardOpen ? '#FDE047' : '#1e293b',
+                color: isLeaderboardOpen ? '#0f172a' : '#ffffff',
+                border: isLeaderboardOpen ? '2px solid #0f172a' : '2px solid #ffffff',
+                boxShadow: isLeaderboardOpen ? 'none' : '2px 2px 0 #000000',
+                transform: isLeaderboardOpen ? 'translate(2px, 2px)' : 'none',
+                fontWeight: 800
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square">
                 <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
                 <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
                 <path d="M4 22h16" />
@@ -253,6 +257,14 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
               title="Toggle CRT Filter"
               aria-pressed={crtActive}
               onClick={() => setCrtActive(!crtActive)}
+              style={{
+                background: crtActive ? '#38bdf8' : '#1e293b',
+                color: crtActive ? '#0f172a' : '#ffffff',
+                border: crtActive ? '2px solid #0f172a' : '2px solid #ffffff',
+                boxShadow: crtActive ? 'none' : '2px 2px 0 #000000',
+                transform: crtActive ? 'translate(2px, 2px)' : 'none',
+                fontWeight: 800
+              }}
             >
               <span>CRT</span>
             </button>
@@ -268,6 +280,12 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
                 try {
                   localStorage.setItem('kadalapi_fox_sound', next.toString());
                 } catch (e) {}
+              }}
+              style={{
+                background: !soundEnabled ? '#475569' : '#1e293b',
+                color: !soundEnabled ? '#94a3b8' : '#ffffff',
+                border: '2px solid #ffffff',
+                boxShadow: '2px 2px 0 #000000'
               }}
             >
               {soundEnabled ? (
@@ -290,6 +308,13 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
               title="Jeda Game"
               aria-pressed={isPaused}
               onClick={() => setIsPaused(!isPaused)}
+              style={{
+                background: isPaused ? '#fde047' : '#1e293b',
+                color: isPaused ? '#0f172a' : '#ffffff',
+                border: isPaused ? '2px solid #0f172a' : '2px solid #ffffff',
+                boxShadow: isPaused ? 'none' : '2px 2px 0 #000000',
+                transform: isPaused ? 'translate(2px, 2px)' : 'none'
+              }}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="6" y="4" width="4" height="16"></rect>
@@ -302,6 +327,12 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
               id="gameModalClose"
               title="Tutup Game"
               onClick={onClose}
+              style={{
+                background: '#EF4444',
+                color: '#ffffff',
+                border: '2px solid #ffffff',
+                boxShadow: '2px 2px 0 #000000'
+              }}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -487,7 +518,7 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
                           background: 'var(--orange)',
                           color: '#ffffff',
                           border: '1px solid #ffffff',
-                          padding: '2px 6px',
+                          padding: '2px 8px',
                           fontFamily: 'var(--px-font)',
                           fontSize: '8px',
                           cursor: 'pointer',
@@ -495,6 +526,23 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
                         }}
                       >
                         OK
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingTag(false)}
+                        title="Batal"
+                        style={{
+                          background: '#334155',
+                          color: '#cbd5e1',
+                          border: '1px solid #64748b',
+                          padding: '2px 6px',
+                          fontFamily: 'var(--px-font)',
+                          fontSize: '8px',
+                          cursor: 'pointer',
+                          borderRadius: 0
+                        }}
+                      >
+                        ✕
                       </button>
                     </form>
                   )}
@@ -523,74 +571,119 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
                     MEMUAT DATA LEADERBOARD...
                   </div>
                 ) : (
-                  entries.map((entry, idx) => {
-                    const isMe = entry.playerId === playerId;
-                    const rankBadgeBg =
-                      idx === 0 ? '#facc15' : idx === 1 ? '#cbd5e1' : idx === 2 ? '#d97706' : '#334155';
-                    const rankBadgeColor = idx <= 1 ? '#0f172a' : '#ffffff';
+                  <>
+                    {entries.map((entry, idx) => {
+                      const isMe = entry.playerId === playerId;
+                      const rankBadgeBg =
+                        idx === 0 ? '#facc15' : idx === 1 ? '#cbd5e1' : idx === 2 ? '#d97706' : '#334155';
+                      const rankBadgeColor = idx <= 1 ? '#0f172a' : '#ffffff';
 
-                    return (
-                      <div
-                        key={entry.playerId + '-' + idx}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '7px 10px',
-                          background: isMe ? 'rgba(249, 115, 22, 0.22)' : 'rgba(30, 41, 59, 0.75)',
-                          border: isMe ? '2px solid var(--orange)' : '1px solid #334155',
-                          fontSize: '9.5px'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              minWidth: '26px',
-                              padding: '2px 4px',
-                              background: rankBadgeBg,
-                              color: rankBadgeColor,
-                              fontSize: '8.5px',
-                              fontWeight: 700
-                            }}
-                          >
-                            #{idx + 1}
-                          </span>
-                          <span
-                            style={{
-                              color: isMe ? '#fde047' : '#f8fafc',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {entry.playerName}
-                          </span>
-                          {isMe && (
+                      return (
+                        <div
+                          key={entry.playerId + '-' + idx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '7px 10px',
+                            background: isMe ? 'rgba(249, 115, 22, 0.22)' : 'rgba(30, 41, 59, 0.75)',
+                            border: isMe ? '2px solid var(--orange)' : '1px solid #334155',
+                            fontSize: '9.5px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                             <span
                               style={{
-                                background: 'var(--orange)',
-                                color: '#ffffff',
-                                padding: '1px 5px',
-                                fontSize: '7.5px'
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                minWidth: '26px',
+                                padding: '2px 4px',
+                                background: rankBadgeBg,
+                                color: rankBadgeColor,
+                                fontSize: '8.5px',
+                                fontWeight: 700
                               }}
                             >
-                              YOU
+                              #{idx + 1}
                             </span>
-                          )}
-                        </div>
+                            <span
+                              style={{
+                                color: isMe ? '#fde047' : '#f8fafc',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {entry.playerName}
+                            </span>
+                            {isMe && (
+                              <span
+                                style={{
+                                  background: 'var(--orange)',
+                                  color: '#ffffff',
+                                  padding: '1px 5px',
+                                  fontSize: '7.5px'
+                                }}
+                              >
+                                YOU
+                              </span>
+                            )}
+                          </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-                          <span style={{ color: '#94a3b8', fontSize: '8.5px' }}>LVL {entry.level}</span>
-                          <span style={{ color: '#38bdf8', minWidth: '58px', textAlign: 'right' }}>
-                            {entry.score.toString().padStart(5, '0')}
-                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                            <span style={{ color: '#94a3b8', fontSize: '8.5px' }}>LVL {entry.level}</span>
+                            <span style={{ color: '#38bdf8', minWidth: '58px', textAlign: 'right' }}>
+                              {entry.score.toString().padStart(5, '0')}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })
+                      );
+                    })}
+
+                    {/* Placeholder rows to fill up classic arcade scoreboard if fewer than 5 */}
+                    {Array.from({ length: Math.max(0, 5 - entries.length) }).map((_, pIdx) => {
+                      const slotRank = entries.length + pIdx + 1;
+                      return (
+                        <div
+                          key={`empty-slot-${slotRank}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '7px 10px',
+                            background: 'rgba(15, 23, 42, 0.45)',
+                            border: '1px dashed #334155',
+                            fontSize: '9.5px',
+                            opacity: 0.55
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                minWidth: '26px',
+                                padding: '2px 4px',
+                                background: '#1e293b',
+                                color: '#64748b',
+                                fontSize: '8.5px',
+                                fontWeight: 700
+                              }}
+                            >
+                              #{slotRank}
+                            </span>
+                            <span style={{ color: '#64748b', letterSpacing: '2px' }}>--------</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ color: '#475569', fontSize: '8.5px' }}>LVL -</span>
+                            <span style={{ color: '#475569', minWidth: '58px', textAlign: 'right' }}>00000</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
                 )}
               </div>
             </div>
@@ -598,68 +691,112 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
         </div>
 
         {/* Footer controls & Keyboard/Touch hints */}
-        <div className="game-cabinet-footer" style={{ flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-          <div className="game-keys-hint" style={{ fontSize: '10px', justifyContent: 'center' }}>
-            <span className="key-badge">A / ←</span>
-            <span className="key-badge">D / →</span>
-            <span className="hint-text">{lang === 'id' ? 'Jalur' : 'Lanes'}</span>
-            <span className="key-sep">•</span>
-            <span className="key-badge">SPACE / ↑</span>
-            <span className="hint-text">{lang === 'id' ? 'Lompat / Salto' : 'Jump / Somersault'}</span>
-            <span className="key-sep">•</span>
-            <span className="key-badge">P</span>
-            <span className="hint-text">{t.game_pause}</span>
-          </div>
+        {!isLeaderboardOpen ? (
+          <div className="game-cabinet-footer" style={{ flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <div className="game-keys-hint" style={{ fontSize: '10px', justifyContent: 'center' }}>
+              <span className="key-badge">A / ←</span>
+              <span className="key-badge">D / →</span>
+              <span className="hint-text">{lang === 'id' ? 'Jalur' : 'Lanes'}</span>
+              <span className="key-sep">•</span>
+              <span className="key-badge">SPACE / ↑</span>
+              <span className="hint-text">{lang === 'id' ? 'Lompat / Salto' : 'Jump / Somersault'}</span>
+              <span className="key-sep">•</span>
+              <span className="key-badge">P</span>
+              <span className="hint-text">{t.game_pause}</span>
+            </div>
 
-          <div className="game-mobile-controls" style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
+            <div className="game-mobile-controls" style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
+              <button
+                type="button"
+                className="game-jump-pad"
+                style={{ flex: 1, minHeight: '44px', padding: '8px 0', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderRadius: 0, touchAction: 'manipulation' }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  if (typeof (window as any).__foxRunnerMoveLeft === 'function') {
+                    (window as any).__foxRunnerMoveLeft();
+                  }
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                <span>{lang === 'id' ? 'KIRI' : 'LEFT'}</span>
+              </button>
+              <button
+                type="button"
+                className="game-jump-pad"
+                style={{ flex: 1.4, minHeight: '44px', padding: '8px 0', fontSize: '12px', background: 'var(--orange)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderRadius: 0, touchAction: 'manipulation' }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  handleMobileJump();
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+                  <polyline points="18 15 12 9 6 15" />
+                </svg>
+                <span>{lang === 'id' ? 'LOMPAT' : 'JUMP'}</span>
+              </button>
+              <button
+                type="button"
+                className="game-jump-pad"
+                style={{ flex: 1, minHeight: '44px', padding: '8px 0', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderRadius: 0, touchAction: 'manipulation' }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  if (typeof (window as any).__foxRunnerMoveRight === 'function') {
+                    (window as any).__foxRunnerMoveRight();
+                  }
+                }}
+              >
+                <span>{lang === 'id' ? 'KANAN' : 'RIGHT'}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div
+            className="game-cabinet-footer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 16px',
+              background: '#0f172a',
+              borderTop: '2px solid #334155',
+              fontSize: '10px',
+              color: '#94a3b8',
+              flexWrap: 'wrap',
+              gap: '8px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#22c55e', boxShadow: '0 0 8px #22c55e', borderRadius: '50%' }}></span>
+              <span>{lang === 'id' ? 'Skor terbaik Anda otomatis tersimpan' : 'Your high score is automatically recorded'}</span>
+            </div>
             <button
               type="button"
-              className="game-jump-pad"
-              style={{ flex: 1, minHeight: '44px', padding: '8px 0', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderRadius: 0, touchAction: 'manipulation' }}
-              onPointerDown={(e) => {
-                e.preventDefault();
-                if (typeof (window as any).__foxRunnerMoveLeft === 'function') {
-                  (window as any).__foxRunnerMoveLeft();
-                }
+              onClick={() => setIsLeaderboardOpen(false)}
+              style={{
+                background: 'var(--orange)',
+                color: '#ffffff',
+                border: '2px solid #ffffff',
+                boxShadow: '2px 2px 0 #000000',
+                padding: '6px 14px',
+                fontFamily: 'var(--px-font)',
+                fontSize: '9.5px',
+                cursor: 'pointer',
+                borderRadius: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-              <span>{lang === 'id' ? 'KIRI' : 'LEFT'}</span>
-            </button>
-            <button
-              type="button"
-              className="game-jump-pad"
-              style={{ flex: 1.4, minHeight: '44px', padding: '8px 0', fontSize: '12px', background: 'var(--orange)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderRadius: 0, touchAction: 'manipulation' }}
-              onPointerDown={(e) => {
-                e.preventDefault();
-                handleMobileJump();
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-                <polyline points="18 15 12 9 6 15" />
-              </svg>
-              <span>{lang === 'id' ? 'LOMPAT' : 'JUMP'}</span>
-            </button>
-            <button
-              type="button"
-              className="game-jump-pad"
-              style={{ flex: 1, minHeight: '44px', padding: '8px 0', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderRadius: 0, touchAction: 'manipulation' }}
-              onPointerDown={(e) => {
-                e.preventDefault();
-                if (typeof (window as any).__foxRunnerMoveRight === 'function') {
-                  (window as any).__foxRunnerMoveRight();
-                }
-              }}
-            >
-              <span>{lang === 'id' ? 'KANAN' : 'RIGHT'}</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
+              <span>{lang === 'id' ? 'KEMBALI KE GAME' : 'RESUME GAME'}</span>
+              <span>→</span>
             </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

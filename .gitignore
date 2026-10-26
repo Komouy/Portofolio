@@ -1,9 +1,37 @@
 # ============================================================
 # Portofolio - .gitignore
-# Dibuat setelah reset repo (repo lama 98,57 MB dihapus)
 # ============================================================
 
-# ---- OS / editor ----
+# ---- Dependencies ----
+node_modules/
+.pnp
+.pnp.js
+
+# ---- Production & Build Outputs ----
+dist/
+dist-ssr/
+build/
+*.local
+
+# ---- Environment Variables & Secrets ----
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ---- Logs ----
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---- AI / Tooling Caches ----
+.aistudio/
+.gemini/
+
+# ---- OS / Editor ----
 Thumbs.db
 desktop.ini
 .DS_Store
@@ -16,8 +44,7 @@ _cvchk/
 *_cudv/
 *_cvchk/
 
-# ---- File besar & file download belum selesai ----
-# Hapus baris "*.mp4" di bawah JIKA ingin video ikut masuk ke repo
+# ---- File besar & download belum selesai ----
 *.mp4
 *.crdownload
 *.zip
@@ -28,3 +55,4 @@ _cvchk/
 # ---- Backup lokal ----
 backup/
 *.bak
+

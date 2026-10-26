@@ -68,7 +68,7 @@ export const translations = {
     tab_direct_form: "Form Pesan Cepat",
     chat_ph: "Tanya apa saja seputar portofolio & layanan...",
     chat_disclaimer: "PortoBot AI dapat membuat kekeliruan. Cek kembali informasi penting atau hubungi langsung.",
-    chat_status_ready: "Online • Siap Menjawab",
+    chat_status_ready: "Online",
     chat_btn_reset: "Reset Chat",
     label_name: "Nama",
     ph_name: "Nama lengkap Anda",

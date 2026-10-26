@@ -365,7 +365,6 @@ const ConsultationFormCard: React.FC<ConsultationFormCardProps> = ({ lang }) => 
           </svg>
           <h5>{isEn ? 'Consultation & Direct Inquiry Form' : 'Formulir Konsultasi & Tanya Langsung'}</h5>
         </div>
-        <span className="cf-badge">{isEn ? 'Sends to WhatsApp / Email' : 'Terkirim ke WhatsApp / Email'}</span>
       </div>
 
       <div className="cf-body">

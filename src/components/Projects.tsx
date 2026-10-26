@@ -5,15 +5,13 @@ import { translations } from '../constants/translations';
 interface ProjectsProps {
   lang: Language;
   projects: Project[];
-  onOpenManager: () => void;
-  isManagerUnlocked: boolean;
+  onOpenManager?: () => void;
+  isManagerUnlocked?: boolean;
 }
 
 export const Projects: React.FC<ProjectsProps> = ({
   lang,
-  projects,
-  onOpenManager,
-  isManagerUnlocked
+  projects
 }) => {
   const t = translations[lang];
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -146,19 +144,24 @@ export const Projects: React.FC<ProjectsProps> = ({
 
   const renderCard = (proj: Project, idx: number, keyPrefix: string) => {
     const primaryTag = proj.tags?.[0] || 'PROJECT';
-    const hasImage = Boolean(proj.image && proj.image.trim());
+    const rawImage = proj.image?.trim() || '';
+    const hasImage = Boolean(rawImage);
+    const imageSrc = hasImage
+      ? (rawImage.startsWith('http') || rawImage.startsWith('/') ? rawImage : `/${rawImage}`)
+      : '';
 
     return (
       <div key={`${keyPrefix}-${proj.id}-${idx}`} className="proj-card in-view">
         <div className="card-shine"></div>
-        <div className="proj-thumb" style={{ background: 'none', position: 'relative', overflow: 'hidden' }}>
+        <div className="proj-thumb" style={{ position: 'relative', overflow: 'hidden', background: '#1c1914' }}>
           {hasImage ? (
             <img
-              src={proj.image}
+              src={imageSrc}
               alt={`${proj.title} Preview`}
               loading="lazy"
               decoding="async"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              className="px-loaded"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'relative', zIndex: 1 }}
               onError={(e) => {
                 const target = e.currentTarget;
                 target.style.display = 'none';
@@ -172,7 +175,8 @@ export const Projects: React.FC<ProjectsProps> = ({
             style={{
               display: hasImage ? 'none' : 'flex',
               position: 'absolute',
-              inset: 0
+              inset: 0,
+              zIndex: 0
             }}
           >
             <div className="pixel-cover-badge">{primaryTag}</div>
@@ -220,27 +224,8 @@ export const Projects: React.FC<ProjectsProps> = ({
           className="section-head reveal in-view"
           style={{ maxWidth: '100% !important', marginBottom: 'clamp(20px, 3vw, 36px) !important' }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%', flexWrap: 'wrap', gap: '14px' }}>
-            <div>
-              <div className="eyebrow">{t.proj_eyebrow}</div>
-              <h2>{t.proj_title}</h2>
-            </div>
-            <button
-              id="btnOpenProjManager"
-              className="px-btn-manage"
-              type="button"
-              title="Buka Panel Pengelola Proyek"
-              onClick={onOpenManager}
-              style={{ display: isManagerUnlocked ? 'inline-flex' : 'none' }}
-            >
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="9" y1="3" x2="9" y2="21"></line>
-                <path d="M14 9h4m-4 4h4m-4 4h4"></path>
-              </svg>
-              <span>Kelola Proyek</span>
-            </button>
-          </div>
+          <div className="eyebrow">{t.proj_eyebrow}</div>
+          <h2>{t.proj_title}</h2>
         </div>
 
         <div className="px-marquee-clip">

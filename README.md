@@ -7,7 +7,7 @@ Website portofolio interaktif bergaya retro modern & pixel art milik Moch Dhaifa
 - **Pixel Art Visuals & Mascot**: Animasi pixel fox interaktif dengan eye-tracking, salto somersault, klik counter, dan balon dialog interaktif.
 - **Fox Runner: Pixel Dash**: Game arcade retro 2D mandiri lengkap dengan synthesizer audio Web Audio API chiptune 8-bit, rintangan dinamis, skor terbaik tersimpan lokal, dan efek CRT scanlines.
 - **Pengelola Proyek & GitHub Importer**:
-  - Panel pengelola proyek dengan keamanan verifikasi PIN admin (default `2026`, terenkripsi SHA-256).
+  - Panel pengelola proyek dengan keamanan verifikasi PIN admin (terenkripsi SHA-256).
   - Sinkronisasi repositori GitHub langsung dari `@Komouy`.
   - Penambahan & pengeditan proyek kustom dengan kompresi gambar lokal otomatis dan tag manager.
 - **PortoBot AI (Gemini Assistant)**:

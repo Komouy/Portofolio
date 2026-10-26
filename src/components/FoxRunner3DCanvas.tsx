@@ -1076,7 +1076,7 @@ export const FoxRunner3DCanvas: React.FC<FoxRunner3DCanvasProps> = ({
               textShadow: '2px 2px 0 #000'
             }}
           >
-            FOX RUNNER 3D: PIXEL DASH
+            FOX - DASH
           </div>
           <div
             style={{

@@ -202,7 +202,7 @@ export const Hero: React.FC<HeroProps> = ({ lang, onOpenArcade }) => {
             className={`fox-stage ${saltoActive ? 'salto-active' : ''}`}
             id="foxStage"
             title="KadalApi Fox 3D — Klik untuk salto & kombo!"
-            style={{ width: 'clamp(280px, 30vw, 360px)', height: 'clamp(260px, 27vw, 330px)', position: 'relative' }}
+            style={{ width: 'clamp(300px, 32vw, 400px)', height: 'clamp(280px, 30vw, 370px)', position: 'relative' }}
           >
             <HeroVoxelFox3D isSalto={saltoActive} onClick={handleFoxClick} />
 
@@ -214,44 +214,20 @@ export const Hero: React.FC<HeroProps> = ({ lang, onOpenArcade }) => {
             </div>
           </div>
 
-          <div style={{ width: '100%', maxWidth: '360px' }}>
+          <div style={{ width: '100%', maxWidth: '400px' }}>
             <button
               type="button"
-              className="btn btn-primary magnetic"
+              className="btn-hero-arcade magnetic"
               onClick={onOpenArcade}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '12px',
-                padding: '14px 22px',
-                fontSize: '14px',
-                letterSpacing: '0.04em',
-                background: 'var(--ink)',
-                color: '#fff',
-                border: 'var(--px-border)',
-                borderRadius: 0,
-                boxShadow: 'var(--px-shadow)'
-              }}
+              id="heroMainArcadeBtn"
+              title={lang === 'id' ? 'Tekan G atau klik untuk main Fox Runner 3D' : 'Press G or click to play Fox Runner 3D'}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square">
+              <svg className="arcade-btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square">
                 <rect x="2" y="6" width="20" height="12" />
                 <path d="M6 12h4m-2-2v4m10-2h.01m-3-1h.01" />
               </svg>
-              <span>{lang === 'id' ? 'MAIN FOX RUNNER 3D' : 'PLAY FOX RUNNER 3D'}</span>
-              <span
-                style={{
-                  fontSize: '10px',
-                  background: 'var(--orange)',
-                  color: '#fff',
-                  padding: '3px 7px',
-                  borderRadius: 0,
-                  marginLeft: 'auto'
-                }}
-              >
-                [G]
-              </span>
+              <span className="arcade-btn-text">{lang === 'id' ? 'MAIN FOX RUNNER 3D' : 'PLAY FOX RUNNER 3D'}</span>
+              <span className="arcade-btn-badge">[G]</span>
             </button>
           </div>
         </div>

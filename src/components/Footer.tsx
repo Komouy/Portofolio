@@ -31,8 +31,6 @@ export const Footer: React.FC<FooterProps> = ({ lang, onSecretTrigger }) => {
         <p
           id="footerSecretTrigger"
           onClick={handleFooterClick}
-          style={{ cursor: 'pointer' }}
-          title="Klik 5x untuk verifikasi pemilik"
         >
           {t.footer_rights}
         </p>

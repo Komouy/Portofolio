@@ -46,7 +46,15 @@ export const App: React.FC = () => {
       const stored = localStorage.getItem(PROJ_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length) return parsed;
+        if (Array.isArray(parsed) && parsed.length) {
+          return parsed.map((p: Project) => {
+            if (!p.image || !p.image.trim()) {
+              const def = DEFAULT_PORTFOLIO_PROJECTS.find((d) => d.id === p.id);
+              if (def) return { ...p, image: def.image };
+            }
+            return p;
+          });
+        }
       }
     } catch (e) {}
     return DEFAULT_PORTFOLIO_PROJECTS;
@@ -77,12 +85,17 @@ export const App: React.FC = () => {
     } catch (e) {}
   }, [lang]);
 
-  // Save projects to localStorage
+  // Save projects to localStorage with quota error detection
   const handleUpdateProjects = (newProjects: Project[]) => {
     setProjects(newProjects);
     try {
       localStorage.setItem(PROJ_STORAGE_KEY, JSON.stringify(newProjects));
-    } catch (e) {}
+    } catch (e: any) {
+      console.warn('Gagal menyimpan proyek ke localStorage:', e);
+      if (e?.name === 'QuotaExceededError' || e?.code === 22) {
+        showToast('Peringatan: Kapasitas penyimpanan browser penuh!');
+      }
+    }
   };
 
   const showToast = (msg: string) => {
@@ -111,6 +124,8 @@ export const App: React.FC = () => {
           setIsManagerOpen(false);
         } else if (isAuthOpen) {
           setIsAuthOpen(false);
+        } else if (isManagerUnlocked) {
+          setIsManagerOpen(true);
         } else {
           setIsAuthOpen(true);
         }
@@ -122,7 +137,7 @@ export const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAuthOpen, isManagerOpen, isArcadeOpen]);
+  }, [isAuthOpen, isManagerOpen, isArcadeOpen, isManagerUnlocked]);
 
   // Expose global openFoxGame if external triggers call it
   useEffect(() => {
@@ -155,14 +170,15 @@ export const App: React.FC = () => {
         <Projects
           lang={lang}
           projects={projects}
-          onOpenManager={() => setIsManagerOpen(true)}
-          isManagerUnlocked={isManagerUnlocked}
         />
         <Experience lang={lang} />
         <Contact lang={lang} />
       </main>
 
-      <Footer lang={lang} onSecretTrigger={() => setIsAuthOpen(true)} />
+      <Footer
+        lang={lang}
+        onSecretTrigger={() => (isManagerUnlocked ? setIsManagerOpen(true) : setIsAuthOpen(true))}
+      />
       <BackToTop />
 
       {/* Scroll-Following 3D Walking Fox Companion */}
@@ -187,11 +203,11 @@ export const App: React.FC = () => {
         onCloseManager={() => setIsManagerOpen(false)}
         projects={projects}
         onUpdateProjects={handleUpdateProjects}
-        showToast={(msg) => {
-          showToast(msg);
+        onUnlock={() => {
           setIsManagerUnlocked(true);
           setIsManagerOpen(true);
         }}
+        showToast={showToast}
       />
 
       {/* Toast Notification */}
