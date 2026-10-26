@@ -2646,6 +2646,45 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 [data-theme="dark"] .proj-list-desc {
   color: #d1c7bc;
 }
+.proj-list-tags-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  align-items: center !important;
+  margin-top: 2px !important;
+}
+.proj-list-tags-label {
+  font-family: var(--px-font) !important;
+  font-size: 8.5px !important;
+  color: var(--gray-500) !important;
+  margin-right: 2px !important;
+  letter-spacing: .04em !important;
+  line-height: 1 !important;
+}
+[data-theme="dark"] .proj-list-tags-label {
+  color: #9c9183 !important;
+}
+.proj-list-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  font-family: var(--px-font) !important;
+  font-size: 8px !important;
+  line-height: 1 !important;
+  padding: 2px 5px !important;
+  background: var(--gray-100) !important;
+  color: #15130f !important;
+  border: 1px solid #15130f !important;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.25) !important;
+  letter-spacing: .02em !important;
+  white-space: nowrap !important;
+  user-select: none !important;
+}
+[data-theme="dark"] .proj-list-tag {
+  background: #181512 !important;
+  color: #d6cfc2 !important;
+  border: 1px solid #4a4135 !important;
+  box-shadow: 1px 1px 0 #000000 !important;
+}
 .proj-list-actions {
   display: flex;
   gap: 8px;
@@ -3078,13 +3117,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .proj-tag-chip {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 5px !important;
   background: var(--gray-100) !important;
-  border: 1.5px solid #15130f !important;
+  border: 1px solid #15130f !important;
   box-shadow: 1px 1px 0 #15130f !important;
-  padding: 3px 8px !important;
+  padding: 2.5px 7px !important;
   font-family: var(--px-font) !important;
-  font-size: 9.5px !important;
+  font-size: 8.5px !important;
   color: #15130f !important;
   line-height: 1 !important;
   user-select: none !important;

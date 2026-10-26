@@ -1024,13 +1024,19 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                               </div>
                             </div>
                             <div className="proj-list-desc">{proj.description}</div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
-                              <span style={{ fontFamily: 'var(--px-font)', fontSize: '9px', color: 'var(--gray-500)', marginRight: '4px' }}>TAGS:</span>
-                              {proj.tags?.map((t, tI) => (
-                                <span key={tI} className="chip" style={{ fontSize: '12px', padding: '2px 6px' }}>
-                                  {t}
+                            <div className="proj-list-tags-row">
+                              <span className="proj-list-tags-label">TAGS:</span>
+                              {proj.tags && proj.tags.length > 0 ? (
+                                proj.tags.map((t, tI) => (
+                                  <span key={tI} className="proj-list-tag">
+                                    {t}
+                                  </span>
+                                ))
+                              ) : (
+                                <span style={{ fontFamily: 'var(--px-font)', fontSize: '8px', color: 'var(--gray-400)', fontStyle: 'italic' }}>
+                                  -
                                 </span>
-                              ))}
+                              )}
                             </div>
                           </div>
                         )}
@@ -1306,7 +1312,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                   }}
                   title="Kunci sesi admin sekarang"
                 >
-                  🔒 Kunci Sesi
+                  Kunci Sesi
                 </button>
                 <button type="button" className="proj-btn-action proj-btn-primary" onClick={onCloseManager}>
                   Tutup
