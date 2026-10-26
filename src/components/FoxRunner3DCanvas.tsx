@@ -1106,7 +1106,6 @@ export const FoxRunner3DCanvas: React.FC<FoxRunner3DCanvasProps> = ({
               letterSpacing: '0.04em'
             }}
           >
-            TAP LAYAR / TEKAN SPACE UNTUK MULAI
           </div>
         </div>
       )}
@@ -1184,21 +1183,6 @@ export const FoxRunner3DCanvas: React.FC<FoxRunner3DCanvasProps> = ({
             }}
           >
             SKOR: {gameRef.current.score} • REKOR: {gameRef.current.highScore}
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--px-font)',
-              fontSize: '11px',
-              color: 'var(--orange)',
-              background: '#15130f',
-              padding: '10px 18px',
-              border: '2px solid var(--orange)',
-              boxShadow: '3px 3px 0 #000000',
-              borderRadius: 0,
-              letterSpacing: '0.04em'
-            }}
-          >
-            TAP LAYAR / TEKAN SPACE UNTUK MAIN LAGI
           </div>
         </div>
       )}

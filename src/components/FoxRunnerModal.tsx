@@ -342,30 +342,57 @@ export const FoxRunnerModal: React.FC<FoxRunnerModalProps> = ({ isOpen, onClose,
           </div>
         </div>
 
-        {/* HUD Bar with Player Identity */}
-        <div className="game-hud" style={{ flexWrap: 'wrap', gap: '8px' }}>
+        {/* Retro Arcade HUD Bar */}
+        <div className="game-hud-bar">
+          {/* Card 1: Player ID / Tag */}
           <div
-            className="hud-item"
-            style={{ cursor: 'pointer' }}
-            title={lang === 'id' ? 'Klik untuk ubah ID atau lihat Leaderboard' : 'Click to edit ID or view Leaderboard'}
+            className="game-hud-card hud-card-player"
             onClick={() => setIsLeaderboardOpen(true)}
+            title={lang === 'id' ? 'Klik untuk ubah nama atau lihat Leaderboard' : 'Click to edit tag or view Leaderboard'}
           >
-            <span className="hud-label">ID:</span>
-            <span className="hud-val" style={{ color: 'var(--orange)', fontSize: '11px' }}>
-              {playerName}
+            <span className="game-hud-tag-lbl">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="7" r="4"/>
+                <path d="M5.5 21a6.5 6.5 0 0 1 13 0"/>
+              </svg>
+              <span>ID PLAYER</span>
+            </span>
+            <span className="game-hud-val val-player" title={playerName}>
+              #{customTag || '0000'}
             </span>
           </div>
-          <div className="hud-item">
-            <span className="hud-label">{t.game_score}</span>
-            <span className="hud-val">{score.toString().padStart(5, '0')}</span>
+
+          {/* Card 2: Current Score */}
+          <div className="game-hud-card hud-card-score">
+            <span className="game-hud-tag-lbl">
+              <span>{lang === 'id' ? 'SKOR' : 'SCORE'}</span>
+            </span>
+            <span className="game-hud-val val-score">
+              {score.toString().padStart(5, '0')}
+            </span>
           </div>
-          <div className="hud-item">
-            <span className="hud-label">{t.game_best}</span>
-            <span className="hud-val">{highScore.toString().padStart(5, '0')}</span>
+
+          {/* Card 3: High Score / Best */}
+          <div className="game-hud-card hud-card-best">
+            <span className="game-hud-tag-lbl">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              <span>{lang === 'id' ? 'TERBAIK' : 'BEST'}</span>
+            </span>
+            <span className="game-hud-val val-best">
+              {highScore.toString().padStart(5, '0')}
+            </span>
           </div>
-          <div className="hud-item">
-            <span className="hud-label">{t.game_level}</span>
-            <span className="hud-val hud-lvl">LVL {level}</span>
+
+          {/* Card 4: Level */}
+          <div className="game-hud-card hud-card-level">
+            <span className="game-hud-tag-lbl">
+              <span>LEVEL</span>
+            </span>
+            <span className="game-hud-val val-level">
+              LVL {level}
+            </span>
           </div>
         </div>
 

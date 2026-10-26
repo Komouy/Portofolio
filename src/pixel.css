@@ -306,8 +306,9 @@ section{padding:var(--px-sec) 0 !important;}
   box-shadow:2px 2px 0 rgba(0,0,0,.4) !important; text-decoration:none !important;
   transition:transform .1s steps(2), box-shadow .1s steps(2), background .15s !important;
 }
-.clink svg{flex-shrink:0 !important;}
+.clink svg{flex-shrink:0 !important; width:18px !important; height:18px !important; color:currentColor;}
 .clink:hover{transform:translate(-2px,-2px) !important; box-shadow:4px 4px 0 rgba(0,0,0,.6) !important; background:var(--orange) !important; color:#ffffff !important; border-color:var(--orange) !important;}
+.clink:hover svg{color:#ffffff !important;}
 [data-theme="dark"] .clink{background:#ffffff !important; color:#15130f !important; border:2px solid #15130f !important; box-shadow:3px 3px 0 #15130f !important;}
 [data-theme="dark"] .clink:hover{background:var(--orange) !important; color:#ffffff !important; border-color:#15130f !important; box-shadow:4px 4px 0 #15130f !important;}
 .form-card{border:var(--px-border); border-radius:0 !important; box-shadow:6px 6px 0 rgba(0,0,0,.4);}
@@ -1977,47 +1978,133 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
   display: block;
 }
 
-/* HUD Bar */
+/* Retro Arcade HUD Bar */
+.game-hud-bar,
 .game-hud {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  background: var(--gray-100);
-  padding: 8px 14px;
-  border-bottom: 3px solid var(--ink);
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  background: #14110d !important;
+  border-bottom: 2.5px solid var(--ink) !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
 }
+
+[data-theme="dark"] .game-hud-bar,
 [data-theme="dark"] .game-hud {
-  background: #201a14;
+  background: #0f0c09 !important;
+  border-color: #2e281f !important;
 }
+
+.game-hud-card,
 .hud-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #1e1913 !important;
+  border: 1.5px solid #362e22 !important;
+  padding: 5px 6px !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 1px 1px 0 #000000 !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease !important;
 }
+
+.game-hud-card.hud-card-player,
+.hud-item:first-child {
+  cursor: pointer !important;
+}
+
+.game-hud-card.hud-card-player:hover,
+.hud-item:first-child:hover {
+  background: #282119 !important;
+  border-color: var(--orange) !important;
+}
+
+.game-hud-tag-lbl,
 .hud-label {
-  font-family: var(--px-font);
-  font-size: 10px;
-  color: var(--gray-600);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  font-family: var(--px-font, 'Silkscreen', monospace) !important;
+  font-size: 8.5px !important;
+  color: #8f8574 !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1 !important;
+  margin-bottom: 3px !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
 }
-[data-theme="dark"] .hud-label {
-  color: #a89f91;
-}
+
+.game-hud-val,
 .hud-val {
-  font-family: 'Silkscreen', monospace;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--orange-deep);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
+  font-family: 'Silkscreen', monospace !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: 0.05em !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
 }
+
+/* Color coding for arcade meters */
+.game-hud-val.val-player {
+  color: #38bdf8 !important;
+  font-size: 13px !important;
+}
+
+.game-hud-val.val-score {
+  color: #fb923c !important;
+  text-shadow: 0 0 8px rgba(251, 146, 60, 0.35) !important;
+}
+
+.game-hud-val.val-best {
+  color: #facc15 !important;
+  text-shadow: 0 0 8px rgba(250, 204, 21, 0.35) !important;
+}
+
+.game-hud-val.val-level,
 .hud-lvl {
-  color: var(--ink);
+  color: #4ade80 !important;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.35) !important;
+  font-size: 14px !important;
 }
-[data-theme="dark"] .hud-lvl {
-  color: #ede5d8;
+
+@media (max-width: 520px) {
+  .game-hud-bar,
+  .game-hud {
+    gap: 4px !important;
+    padding: 6px 6px !important;
+  }
+  .game-hud-card,
+  .hud-item {
+    padding: 4px 3px !important;
+  }
+  .game-hud-tag-lbl,
+  .hud-label {
+    font-size: 7.5px !important;
+    gap: 2px !important;
+  }
+  .game-hud-val,
+  .hud-val {
+    font-size: 12px !important;
+  }
+  .game-hud-val.val-player {
+    font-size: 10.5px !important;
+  }
+  .game-hud-val.val-level,
+  .hud-lvl {
+    font-size: 11.5px !important;
+  }
 }
 
 /* CRT Screen Wrapper & Canvas */
@@ -2514,6 +2601,26 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
   justify-content: center;
   white-space: nowrap;
   box-sizing: border-box;
+}
+.proj-list-badge.badge-demo {
+  background: var(--orange) !important;
+  color: #ffffff !important;
+  border: 1px solid #15130f !important;
+}
+[data-theme="dark"] .proj-list-badge.badge-demo {
+  background: var(--orange) !important;
+  color: #ffffff !important;
+  border: 1px solid #c2410c !important;
+}
+.proj-list-badge.badge-git {
+  background: #15130f !important;
+  color: #ffffff !important;
+  border: 1px solid #000000 !important;
+}
+[data-theme="dark"] .proj-list-badge.badge-git {
+  background: #161b22 !important;
+  color: #ffffff !important;
+  border: 1px solid #444d56 !important;
 }
 .proj-list-badge.badge-active {
   background: #16a34a !important;

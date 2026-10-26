@@ -200,7 +200,15 @@ export const App: React.FC = () => {
         isAuthOpen={isAuthOpen}
         onCloseAuth={() => setIsAuthOpen(false)}
         isManagerOpen={isManagerOpen}
-        onCloseManager={() => setIsManagerOpen(false)}
+        onCloseManager={() => {
+          setIsManagerOpen(false);
+          setIsManagerUnlocked(false);
+        }}
+        onLock={() => {
+          setIsManagerUnlocked(false);
+          setIsManagerOpen(false);
+          setIsAuthOpen(false);
+        }}
         projects={projects}
         onUpdateProjects={handleUpdateProjects}
         onUnlock={() => {

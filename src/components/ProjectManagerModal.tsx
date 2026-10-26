@@ -10,11 +10,62 @@ interface ProjectManagerModalProps {
   projects: Project[];
   onUpdateProjects: (updated: Project[]) => void;
   onUnlock?: () => void;
+  onLock?: () => void;
   showToast: (msg: string) => void;
 }
 
-// SHA-256 for admin PIN: '201007'
-const DEFAULT_PIN_HASH = '707ff98bce3074eaf5e77a679353b1091999b5b76b7e5f1d4c26f10a04b62107';
+// Domain-specific cryptographic salt to prevent rainbow-table and dictionary attacks
+const SALT_PREFIX = 'kadalapi_foxrunner_sec_';
+const SALT_SUFFIX = '_201007_komouy_vault_v3';
+
+// Salted SHA-256 for default admin PIN '201007'
+// Raw text before hash: 'kadalapi_foxrunner_sec_201007_201007_komouy_vault_v3'
+const DEFAULT_PIN_HASH = '1fcb3454cedfa317bdf688646689ea4af24a2f1b0bd5a7b2684943dab2d1daa6';
+const LEGACY_PIN_HASH = '707ff98bce3074eaf5e77a679353b1091999b5b76b7e5f1d4c26f10a04b62107';
+
+/** Anti-Brute Force Lockout Constants */
+const MAX_ATTEMPTS_BEFORE_LOCK = 3;
+const COOLDOWN_TIER_1 = 30; // 30 seconds
+const COOLDOWN_TIER_2 = 120; // 2 minutes
+const COOLDOWN_TIER_3 = 300; // 5 minutes
+
+function getLockoutState(): { isLocked: boolean; remainingSec: number } {
+  try {
+    const until = parseInt(sessionStorage.getItem('kd_admin_lockout') || '0', 10);
+    const now = Date.now();
+    if (until > now) {
+      return { isLocked: true, remainingSec: Math.ceil((until - now) / 1000) };
+    }
+  } catch (_) {}
+  return { isLocked: false, remainingSec: 0 };
+}
+
+function recordFailedAttempt(): number {
+  try {
+    const cur = parseInt(sessionStorage.getItem('kd_admin_attempts') || '0', 10) + 1;
+    sessionStorage.setItem('kd_admin_attempts', cur.toString());
+    let duration = 0;
+    if (cur >= 5) duration = COOLDOWN_TIER_3;
+    else if (cur >= 4) duration = COOLDOWN_TIER_2;
+    else if (cur >= 3) duration = COOLDOWN_TIER_1;
+
+    if (duration > 0) {
+      const until = Date.now() + duration * 1000;
+      sessionStorage.setItem('kd_admin_lockout', until.toString());
+      return duration;
+    }
+    return 0;
+  } catch (_) {
+    return 0;
+  }
+}
+
+function clearLockoutState() {
+  try {
+    sessionStorage.removeItem('kd_admin_attempts');
+    sessionStorage.removeItem('kd_admin_lockout');
+  } catch (_) {}
+}
 
 /**
  * Pure JS SHA-256 fallback algorithm to guarantee consistent cryptographic hashing
@@ -90,19 +141,44 @@ function pureSha256(ascii: string): string {
   return result;
 }
 
-async function hashPin(pin: string): Promise<string> {
+async function rawSha256(ascii: string): Promise<string> {
   if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
     try {
-      const buf = new TextEncoder().encode(pin);
+      const buf = new TextEncoder().encode(ascii);
       const hash = await crypto.subtle.digest('SHA-256', buf);
       return Array.from(new Uint8Array(hash))
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
-    } catch (e) {
-      // Fallback if subtle digest fails
+    } catch (e) {}
+  }
+  return pureSha256(ascii);
+}
+
+/** Compute salted SHA-256 for admin PIN */
+async function hashPin(pin: string): Promise<string> {
+  const salted = `${SALT_PREFIX}${pin.trim()}${SALT_SUFFIX}`;
+  return rawSha256(salted);
+}
+
+/** Verify PIN against stored hash with backward-compatibility auto-upgrade */
+async function verifyPin(pin: string): Promise<boolean> {
+  const trimmed = pin.trim();
+  const saltedHash = await hashPin(trimmed);
+  const storedHash = localStorage.getItem('portfolio_admin_pin_hash') || DEFAULT_PIN_HASH;
+
+  if (saltedHash === storedHash) {
+    return true;
+  }
+
+  // Backward compatibility migration from legacy unsalted hash:
+  if (storedHash === LEGACY_PIN_HASH) {
+    const rawLegacy = await rawSha256(trimmed);
+    if (rawLegacy === LEGACY_PIN_HASH) {
+      localStorage.setItem('portfolio_admin_pin_hash', saltedHash);
+      return true;
     }
   }
-  return pureSha256(pin);
+  return false;
 }
 
 /** URL Sanitizer: adds https:// if protocol is omitted */
@@ -142,11 +218,14 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   projects,
   onUpdateProjects,
   onUnlock,
+  onLock,
   showToast
 }) => {
   // Auth state
   const [pinInput, setPinInput] = useState('');
   const [authError, setAuthError] = useState('');
+  const [lockoutRemaining, setLockoutRemaining] = useState<number>(0);
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const pinInputRef = useRef<HTMLInputElement>(null);
 
   // Manager state
@@ -176,13 +255,31 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   const [editTags, setEditTags] = useState<string[]>([]);
   const [editTagInput, setEditTagInput] = useState('');
 
-  // Reset auth input on modal open
+  // Check lockout on auth modal open and setup live countdown
   useEffect(() => {
-    if (isAuthOpen) {
-      setPinInput('');
+    if (!isAuthOpen) return;
+
+    setPinInput('');
+    const { isLocked, remainingSec } = getLockoutState();
+    setLockoutRemaining(remainingSec);
+
+    if (isLocked) {
+      setAuthError(`AKSES DITOLAK: Terlalu banyak percobaan salah. Terkunci ${remainingSec} detik.`);
+    } else {
       setAuthError('');
       setTimeout(() => pinInputRef.current?.focus(), 50);
     }
+
+    const timer = setInterval(() => {
+      const { isLocked: stillLocked, remainingSec: rem } = getLockoutState();
+      setLockoutRemaining(rem);
+      if (!stillLocked) {
+        clearInterval(timer);
+        setAuthError('');
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, [isAuthOpen]);
 
   // Reset edit state when manager modal closes
@@ -191,6 +288,29 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       setEditingProjId(null);
     }
   }, [isManagerOpen]);
+
+  // Inactivity Auto-Lock (10 minutes) while manager is active
+  useEffect(() => {
+    if (!isManagerOpen) return;
+    let timer: any;
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (onLock) onLock();
+        onCloseManager();
+        showToast('Sesi otomatis dikunci demi keamanan (tidak ada aktivitas 10 menit).');
+      }, 10 * 60 * 1000);
+    };
+
+    resetTimer();
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    events.forEach((ev) => window.addEventListener(ev, resetTimer, { passive: true }));
+
+    return () => {
+      clearTimeout(timer);
+      events.forEach((ev) => window.removeEventListener(ev, resetTimer));
+    };
+  }, [isManagerOpen, onLock, onCloseManager, showToast]);
 
   // Image compression & validation helper
   const compressImage = (file: File, callback: (dataUrl: string) => void) => {
@@ -252,19 +372,32 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     reader.readAsDataURL(file);
   };
 
-  // Auth form submit
+  // Auth form submit with brute-force protection, lockout & crypto delay
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isVerifying) return;
+
+    const { isLocked, remainingSec } = getLockoutState();
+    if (isLocked) {
+      setAuthError(`AKSES DITOLAK: Terkunci sementara (${remainingSec} detik).`);
+      return;
+    }
+
     const pin = pinInput.trim();
     if (!pin) {
       setAuthError('PIN tidak boleh kosong.');
       return;
     }
 
-    const hashed = await hashPin(pin);
-    const storedHash = localStorage.getItem('portfolio_admin_pin_hash') || DEFAULT_PIN_HASH;
+    setIsVerifying(true);
+    // 400ms computational delay to deter automated console brute-force scripts
+    await new Promise((resolve) => setTimeout(resolve, 400));
 
-    if (hashed === storedHash) {
+    const isValid = await verifyPin(pin);
+    setIsVerifying(false);
+
+    if (isValid) {
+      clearLockoutState();
       setPinInput('');
       setAuthError('');
       onCloseAuth();
@@ -273,9 +406,18 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       }
       showToast('Akses pemilik terverifikasi.');
     } else {
-      setAuthError('AKSES DITOLAK: PIN SALAH.');
+      const lockedDuration = recordFailedAttempt();
+      const attempts = parseInt(sessionStorage.getItem('kd_admin_attempts') || '1', 10);
       setPinInput('');
-      setTimeout(() => pinInputRef.current?.focus(), 50);
+
+      if (lockedDuration > 0) {
+        setLockoutRemaining(lockedDuration);
+        setAuthError(`AKSES DITOLAK: Terlalu banyak percobaan salah. Terkunci ${lockedDuration} detik.`);
+      } else {
+        const remainingAttempts = Math.max(0, MAX_ATTEMPTS_BEFORE_LOCK - attempts);
+        setAuthError(`AKSES DITOLAK: PIN SALAH. (${remainingAttempts} percobaan tersisa sebelum terkunci)`);
+        setTimeout(() => pinInputRef.current?.focus(), 50);
+      }
     }
   };
 
@@ -485,7 +627,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     showToast(`Proyek "${formattedTitle}" berhasil dimasukkan!`);
   };
 
-  // Change Admin PIN with validation
+  // Change Admin PIN with cryptographic salted hash
   const handleChangePin = async () => {
     const currentPin = prompt('Masukkan PIN lama:');
     if (currentPin === null) return;
@@ -495,19 +637,17 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
       return;
     }
 
-    const hashedCurrent = await hashPin(trimmedOld);
-    const storedHash = localStorage.getItem('portfolio_admin_pin_hash') || DEFAULT_PIN_HASH;
-
-    if (hashedCurrent !== storedHash) {
+    const isOldValid = await verifyPin(trimmedOld);
+    if (!isOldValid) {
       alert('PIN lama salah! Akses ditolak.');
       return;
     }
 
-    const newPin = prompt('Masukkan PIN baru (minimal 4 karakter, disarankan angka):');
+    const newPin = prompt('Masukkan PIN baru (minimal 6 karakter):');
     if (newPin === null) return;
     const trimmedNew = newPin.trim();
-    if (!trimmedNew || trimmedNew.length < 4) {
-      alert('PIN baru tidak valid! Minimal 4 karakter.');
+    if (!trimmedNew || trimmedNew.length < 6) {
+      alert('PIN baru tidak valid! Minimal 6 karakter demi keamanan.');
       return;
     }
 
@@ -520,7 +660,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
 
     const hashedNew = await hashPin(trimmedNew);
     localStorage.setItem('portfolio_admin_pin_hash', hashedNew);
-    showToast('PIN Admin berhasil diperbarui!');
+    showToast('PIN Admin berhasil diperbarui dengan enkripsi salt!');
   };
 
   // Reset to default projects safely
@@ -570,7 +710,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             </div>
             <div className="proj-manager-body" style={{ padding: '20px' }}>
               <p style={{ fontFamily: 'var(--px-font)', fontSize: '10px', color: 'var(--gray-600)', lineHeight: 1.6, marginBottom: '12px' }}>
-                Masukkan PIN Admin untuk mengelola portofolio:
+                Masukkan PIN Admin untuk membuka panel pengelola proyek:
               </p>
               <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div className="proj-form-field">
@@ -579,25 +719,45 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                     ref={pinInputRef}
                     id="projAuthPinInput"
                     type="password"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    disabled={lockoutRemaining > 0 || isVerifying}
                     maxLength={20}
-                    placeholder="••••••"
+                    placeholder={lockoutRemaining > 0 ? `TERKUNCI (${lockoutRemaining}s)` : '••••••'}
                     required
                     value={pinInput}
                     onChange={(e) => setPinInput(e.target.value)}
-                    style={{ fontSize: '18px', letterSpacing: '4px', textAlign: 'center' }}
+                    style={{
+                      fontSize: '18px',
+                      letterSpacing: '4px',
+                      textAlign: 'center',
+                      opacity: lockoutRemaining > 0 ? 0.6 : 1,
+                      cursor: lockoutRemaining > 0 ? 'not-allowed' : 'text'
+                    }}
                   />
                 </div>
                 {authError && (
-                  <div style={{ fontFamily: 'var(--px-font)', fontSize: '9px', color: '#dc2626', minHeight: '14px', textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--px-font)', fontSize: '9px', color: '#dc2626', minHeight: '14px', textAlign: 'center', lineHeight: 1.4 }}>
                     {authError}
+                  </div>
+                )}
+                {lockoutRemaining > 0 && (
+                  <div style={{ fontFamily: 'var(--px-font)', fontSize: '8.5px', color: '#991b1b', textAlign: 'center', background: '#fee2e2', padding: '6px 8px', border: '1.5px solid #ef4444' }}>
+                    Sistem keamanan terkunci sementara. Harap tunggu {lockoutRemaining} detik.
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '6px' }}>
                   <button type="button" className="proj-btn-action" onClick={onCloseAuth}>
                     Batal
                   </button>
-                  <button type="submit" className="proj-btn-action proj-btn-primary">
-                    Buka Akses
+                  <button
+                    type="submit"
+                    className="proj-btn-action proj-btn-primary"
+                    disabled={lockoutRemaining > 0 || isVerifying}
+                  >
+                    {isVerifying ? 'Memverifikasi...' : lockoutRemaining > 0 ? `Terkunci (${lockoutRemaining}s)` : 'Buka Akses'}
                   </button>
                 </div>
               </form>
@@ -848,8 +1008,8 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                                 <span className="proj-list-title">
                                   {idx + 1}. {proj.title}
                                 </span>
-                                {proj.demoUrl && <span className="proj-list-badge" style={{ marginLeft: '6px' }}>DEMO</span>}
-                                {proj.githubUrl && <span className="proj-list-badge" style={{ marginLeft: '4px', background: 'var(--ink)' }}>GIT</span>}
+                                {proj.demoUrl && <span className="proj-list-badge badge-demo" style={{ marginLeft: '6px' }}>DEMO</span>}
+                                {proj.githubUrl && <span className="proj-list-badge badge-git" style={{ marginLeft: '4px' }}>GIT</span>}
                                 {proj.source === 'github' && (
                                   <span className="proj-list-badge proj-badge-dark" style={{ marginLeft: '4px' }}>GH REPO</span>
                                 )}
@@ -1124,7 +1284,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
             {/* Footer */}
             <div className="proj-manager-foot">
               <div style={{ fontFamily: 'var(--px-font)', fontSize: '10px', color: 'var(--gray-600)' }}>
-                Panel Pengelola Proyek
+                Panel Pengelola Proyek // Sesi Aktif
               </div>
               <div className="proj-manager-foot-actions">
                 <button type="button" className="proj-btn-action" onClick={handleChangePin} title="Ubah PIN akses admin">
@@ -1135,6 +1295,18 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                 </button>
                 <button type="button" className="proj-btn-action" onClick={handleExportJson} title="Salin data proyek JSON">
                   Salin JSON
+                </button>
+                <button
+                  type="button"
+                  className="proj-btn-action proj-btn-delete"
+                  onClick={() => {
+                    if (onLock) onLock();
+                    onCloseManager();
+                    showToast('Sesi ditutup & panel pengelola berhasil dikunci.');
+                  }}
+                  title="Kunci sesi admin sekarang"
+                >
+                  🔒 Kunci Sesi
                 </button>
                 <button type="button" className="proj-btn-action proj-btn-primary" onClick={onCloseManager}>
                   Tutup
