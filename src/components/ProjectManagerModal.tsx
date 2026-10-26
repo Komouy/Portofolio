@@ -1183,7 +1183,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
 
                     {/* Tag manager - Simple & Manual Input */}
                     <div className="proj-form-field">
-                      <label>TAG TEKNOLOGI</label>
+                      <label>TAGS</label>
                       <div className="proj-tags-manager">
                         <div className="proj-tags-chips-list">
                           {newTags.length === 0 ? (
